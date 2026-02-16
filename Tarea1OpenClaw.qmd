@@ -1,0 +1,46 @@
+---
+title: "Guía Maestra: OpenClaw"
+subtitle: "Instalación, Seguridad y Orquestación de Agentes IA"
+author: "Fernan Severich"
+date: last-modified
+lang: es
+format:
+  html:
+    toc: true
+    toc-title: "Índice de Contenidos"
+    toc-depth: 3
+    number-sections: true
+    theme: cosmo
+    code-copy: true
+    code-overflow: wrap
+    css: styles.css
+---
+
+# Introducción
+
+Esta guía transforma a **OpenClaw** (anteriormente conocido como Clawdbot o Moltbot) de un simple script a un **empleado digital seguro** que vive en un servidor y trabaja 24/7. Esta documentación consolida las mejores prácticas, correcciones de errores comunes y optimizaciones de seguridad.
+
+## Requisitos Previos
+
+1.  **VPS (Servidor Privado Virtual):** Recomendado Ubuntu 22.04 o 24.04 (mínimo 4GB-8GB RAM). *No usar PC personal.*
+2.  **API Key de Anthropic (Claude):** Se recomienda el modelo `claude-3-5-sonnet`.
+3.  **Cuenta de Telegram:** Para la interfaz de control.
+4.  **Conocimientos básicos de Terminal:** Copiar y pegar comandos.
+
+---
+
+# FASE 1: Seguridad Blindada (Tailscale)
+
+::: {.callout-important}
+## ADVERTENCIA DE SEGURIDAD
+Al instalar OpenClaw en un VPS, el panel de control se expone en el puerto público `18789`. Existen bots escaneando activamente IPs para secuestrar estos agentes. **Nunca saltes este paso.**
+:::
+
+La solución es crear una **VPN privada (Mesh network)** usando Tailscale.
+
+## Instalar Tailscale en el VPS
+
+Abre la terminal de tu VPS y ejecuta:
+
+```bash
+curl -fsSL https://tailscale.com/install.sh | sh
