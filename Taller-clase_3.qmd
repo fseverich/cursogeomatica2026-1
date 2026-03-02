@@ -1,0 +1,151 @@
+---
+title: "Geomática General (Clase 3): Sistemas de Coordenadas y Referencia en Colombia"
+author: "Fernan Severich"
+date: "2026-03-01"
+format: 
+  html:
+    toc: true
+    toc-location: body
+    toc-title: "Tabla de Contenido"
+    number-sections: true
+    embed-resources: true
+    theme: cosmo
+  pdf:
+    toc: true
+    number-sections: true
+    colorlinks: true
+    geometry:
+      - top=20mm
+      - left=20mm
+      - right=20mm
+      - bottom=20mm
+---
+
+## Conceptos de Georreferenciación
+Los datos se referencian a sitios sobre la superficie terrestre mediante dos sistemas principales:
+**Sistema de Coordenadas Geográficas (GCS):** Medidas esféricas en latitud y longitud.
+
+**Sistema de Coordenadas Proyectadas (PCS):** Coordenadas en cuadrícula cartesiana que convierten medidas esféricas a planas.
+
+## Modelado Terrestre
+Para la representación de la Tierra se consideran tres superficies:
+
+1. **Geoide:** La forma física real definida por la gravedad, equivalente al nivel del mar.
+
+2. **Elipsoide o Esferoide:** Modelo matemático que simplifica los cálculos espaciales.
+
+3. **Datum:** Un esferoide alineado con un punto conocido para servir como marco de referencia.
+
+
+
+## Sistema de Referencia Colombiano
+Colombia ha migrado de un sistema local a uno geocéntrico compatible con estándares globales.
+
+### Evolución del Datum
+* **Datum Bogotá (Histórico):** También llamado "ARENA", basado en el Elipsoide Internacional de 1924. 
+* **MAGNA-SIRGAS:** Orígenes Históricos MAGNA-SIRGAS (Gauss-Krüger)
+
+Antes de la unificación al Origen Nacional Único (EPSG:9377), el sistema MAGNA-SIRGAS operaba bajo estas cinco fajas principales para el área continental:
+
+| Origen / Faja | Código EPSG | Latitud Origen (N) | Longitud Origen (W) | Falso Este | Falso Norte |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Oeste Oeste** | 3114 | 4° 35' 46.3215" | 80° 04' 39.0285" | 1,000,000 m | 1,000,000 m |
+| **Oeste** | 3115 | 4° 35' 46.3215" | 77° 04' 39.0285" | 1,000,000 m | 1,000,000 m |
+| **Bogotá (Central)** | 3116 | 4° 35' 46.3215" | 74° 04' 39.0285" | 1,000,000 m | 1,000,000 m |
+| **Este Central** | 3117 | 4° 35' 46.3215" | 71° 04' 39.0285" | 1,000,000 m | 1,000,000 m |
+| **Este** | 3118 | 4° 35' 46.3215" | 68° 04' 39.0285" | 1,000,000 m | 1,000,000 m |
+
+### El Nuevo Origen Nacional (EPSG:9377)
+Para resolver el problema de las coordenadas repetidas en las 6 fajas antiguas de Gauss-Krüger, se definió un origen único:
+
+| Parámetro | Valor |
+|-----------|-------------------------|
+| Meridiano Central | 73° W |
+| Latitud de Origen | 4° N |
+| Falso Este | 5,000,000 m |
+| Falso Norte | 2,000,000 m |
+
+::: {.callout-tip}
+>**Dato Curioso:** El Falso Este de 5,000,000 m permite distinguir inmediatamente el nuevo sistema del antiguo, que utilizaba 1,000,000 m.
+:::
+
+## Guía de Referencia EPSG
+Esta tabla consolida los sistemas de coordenadas resaltados en ArcGIS Pro, diferenciando entre sistemas geográficos (GCS) y proyectados (PCS), organizados por su vigencia técnica.
+
+| Categoría | Sistema de Coordenadas (ArcGIS Name) | Código EPSG | Tipo | Estado |
+| :--- | :--- | :--- | :--- | :--- |
+| **OFICIAL** | **MAGNA-SIRGAS 2018 / Origen Nacional** | **9377** | PCS | **Vigente** |
+| **GCS (Actual)** | **MAGNA-SIRGAS 2018** | **8908** | GCS | Actual |
+| **GCS (Vigente)** | MAGNA-SIRGAS (MAGNA) | 4686 | GCS | Vigente |
+| **GCS (Global)** | WGS 84 | 4326 | GCS | Global |
+| **GCS (Histórico)**| **Bogotá (Bogota)** | **3819** | GCS | Histórico |
+| **GCS (Histórico)**| **Bogota (Datum Bogotá / ARENA)** | **4218** | GCS | Histórico |
+| **PCS (2018)** | **MAGNA-SIRGAS 2018 / Bogota zone** | **9370** | PCS | Actual |
+| **PCS (2018)** | **MAGNA-SIRGAS 2018 / East Central zone** | **9371** | PCS | Actual |
+| **PCS (2018)** | **MAGNA-SIRGAS 2018 / East zone** | **9372** | PCS | Actual |
+| **PCS (2018)** | **MAGNA-SIRGAS 2018 / West zone** | **9368** | PCS | Actual |
+| **PCS (2018)** | **MAGNA-SIRGAS 2018 / Far West zone** | **9367** | PCS | Actual |
+| **PCS (Magna)** | Magna Colombia Bogota (Central) | 3116 | PCS | Histórico |
+| **PCS (Magna)** | Magna Colombia Este (East) | 3117 | PCS | Histórico |
+| **PCS (Magna)** | Magna Colombia Oeste (West) | 3115 | PCS | Histórico |
+| **PCS (Magna)** | Magna Colombia Este Este | 3118 | PCS | Histórico |
+| **PCS (Magna)** | Magna Colombia Oeste Oeste | 3114 | PCS | Histórico |
+| **PCS (Bogotá)** | **Colombia Bogota zone (Datum Bogotá)** | **21897** | PCS | Histórico |
+| **PCS (Bogotá)** | **Colombia East Central zone (Datum Bogotá)**| **21898** | PCS | Histórico |
+| **PCS (Bogotá)** | **Colombia East zone (Datum Bogotá)** | **21899** | PCS | Histórico |
+| **PCS (Bogotá)** | **Colombia West zone (Datum Bogotá)** | **21896** | PCS | Histórico |
+
+---
+
+## Análisis de los sistemas en ArcGIS
+
+Basado en la exploración de sistemas en ArcGIS Pro, es fundamental distinguir:
+
+### Sistemas Geográficos (GCS)
+Aparecen bajo la ruta `Geographic Coordinate System > South America > Colombia`. Se destacan:
+* **MAGNA-SIRGAS 2018**: El marco de referencia más reciente.
+* **Bogotá (Bogota)**: Representa el datum local clásico (ARENA) utilizado antes de la adopción de sistemas geocéntricos.
+
+### Sistemas Proyectados (PCS)
+Corresponden a las fajas transversas de Gauss-Krüger. Note que ArcGIS ofrece versiones tanto para el **Datum Bogotá** (antiguo), **MAGNA** (transicional) y **MAGNA-SIRGAS 2018** (reciente).
+
+* **Origen Nacional (9377)**: El único sistema que unifica todo el país en una sola zona.
+* **Fajas Regionales**: Sistemas como "East zone" o "West zone" son útiles para proyectos locales que requieren minimizar la distorsión en áreas específicas del territorio.
+
+## Práctica con ArcGis (Sistemas de Coordenadas)
+
+Se usaron archivos .SHP del material de clase cundinamarca.shp y veredas.shp los cuales se encontraban proyectados en en sistemas diferentes, para trabajar conversiones y diferenciar los tipos de sistemas de coordenadas en ArcGis. 
+
+### Carga de shapes y sincronización de sistemas de coordenadas
+Se usó la herramienta Define Projection para unificar para unificar los sistemas de referencia.
+
+::: {#fig-arcgis layout-ncol=1}
+![](Taller-clase_3_files/Imagenes/Mapa_Cundinamarca.png){fig-align="center" height="420px"}
+
+Visualización de mapas unificados en ArcGIS
+:::
+
+De los resultados de este ejercicio se encontró que el archivo cundinamarca.shp no contaba con el archivo .prj disponible, por lo cual se tuvo que proyectar (usando define projection) en el sistema de coordenadas Bogotá el cual es un sistema de coordenadas elipsoidales (Geográfico), relacionado con el sistema de coordenadas histórico ARENA.
+
+Por otra parte el archivo veredas.shp tampoco contaba con un archivo .prj disponible en el repositorio, por tanto, se tuvo que proyectar (usando define projection) en el sistema de coordenadas "Colombia Bogotá Zone", el cual corresponde con un sistema de coordenadas proyectadas relacionado con el sistema MAGNA-SIRGAS.
+
+### Re-proyección de sistemas de coordenadas
+::: {.callout-tip}
+>**Aprendizaje:** "La ausencia del archivo .prj impide que ArcGIS Pro reconozca el marco de referencia espacial de la capa. A diferencia de la proyección al vuelo (que ajusta capas con sistemas conocidos al sistema del mapa), una capa sin .prj se visualiza como un sistema desconocido, lo que imposibilita cualquier transformación geográfica o plana automática hasta que se defina su sistema de coordenadas original."
+:::
+
+Se utilizó la herramienta Project en ArcGIS Pro para transformar la capa desde un sistema de coordenadas geográficas (GCS_Bogota) a un sistema de coordenadas proyectadas (Colombia Bogota Zone), definiendo como salida un nuevo feature class dentro de la geodatabase del proyecto y seleccionando el sistema de coordenadas proyectado correspondiente. En este proceso no fue necesario establecer parámetros en la opción “Geographic Transformation” porque no se realizó un cambio de datum, ya que tanto el sistema de entrada como el de salida están basados en el datum Bogotá. Por lo tanto, la herramienta únicamente aplicó las ecuaciones matemáticas de la proyección cartográfica para convertir coordenadas geográficas (latitud y longitud) en coordenadas planas (Este y Norte en metros), sin modificar el marco geodésico de referencia.
+
+A continuación se presenta el layout, en el cual se demuestra que, independientemente del sistema de proyección de la capa, es posible configurar la grilla en un sistema de coordenadas diferente. En este caso, el plano fue proyectado previamente en el sistema Colombia Bogotá Zone, mientras que en el layout la grilla se definió en MAGNA-SIRGAS Origen Nacional. Esto evidencia que el software realiza automáticamente la transformación necesaria para representar correctamente la grilla en el sistema de coordenadas seleccionado, sin alterar la proyección original de los datos.
+
+::: {#fig-arcgis layout-ncol=1}
+![](Taller-clase_3_files/Imagenes/Mapa_Vereda.png){fig-align="center" height="420px"}
+
+Visualización de mapas vereda en ArcGIS
+:::
+
+Se ejecutó la herramienta Project (Data Management Tools) en ArcGIS Pro para reproyectar la capa cundinamarca. Se estableció como sistema de coordenadas de entrada el GCS_Bogota y como sistema de salida el sistema proyectado Colombia_Bogota_Zone, con el fin de convertir la información desde coordenadas geográficas (latitud/longitud) a coordenadas planas (Este/Norte). El resultado se guardó como una nueva entidad dentro de una File Geodatabase del proyecto, asignándole un nombre en el campo Output Dataset or Feature Class. En este paso no se definió transformación geográfica (Geographic Transformation), y la ejecución culminó de forma satisfactoria.
+
+::: {.callout-tip}
+>**Aprendizaje:** "Además de usar herramientas como Project para reproyectar, existe otra forma de convertir sistemas de coordenadas: importar la información a una geodatabase que ya esté configurada con un sistema de coordenadas diferente. En este caso, se plantea llevar la capa veredas, que actualmente está en coordenadas planas (proyectadas), a coordenadas geográficas mediante su importación a la geodatabase del proyecto; para ello, primero se debe crear dentro de la geodatabase un Feature Dataset llamado “magna_sirgas_gcs” definido en coordenadas geográficas MAGNA-SIRGAS, de manera que los datos queden almacenados y trabajados bajo ese sistema de referencia."
+:::

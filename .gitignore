@@ -1,6 +1,16 @@
+# Carpetas y archivos de sistema/Docker
 sig_unal_completo.tar
+sig_unal_completo/
+Clase3/
 blobs/
+docker-compose
+oci-layout
+
+# Archivos de instalación y configuración
+*.deb
 index.json
 manifest.json
-oci-layout
-*.deb
+
+# Basura de renderizado de Quarto (MUY RECOMENDADO)
+*_files/
+.quarto/
