@@ -1,0 +1,333 @@
+---
+title: "Geomática General (Taller Clase 4) Conversión de Formatos (ArcGIS Pro - QGIS)"
+author: "Fernan Severich"
+date: "2026-03-09"
+format: 
+  html:
+    toc: true
+    toc-location: body
+    toc-title: "Tabla de Contenido"
+    number-sections: true
+    embed-resources: true
+    theme: cosmo
+  pdf:
+    toc: true
+    number-sections: true
+    colorlinks: true
+    geometry:
+      - top=20mm
+      - left=20mm
+      - right=20mm
+      - bottom=20mm
+---
+
+## Introducción
+Esta práctica se enfoca en la interoperabilidad entre los entornos SIG y CAD, un proceso crítico para la integración de datos geoespaciales en flujos de trabajo de ingeniería, topografía y diseño urbano. A través de la exportación de capas vectoriales al estándar de intercambio DXF (Drawing Exchange Format), se busca transformar entidades geográficas en elementos de dibujo técnico que conserven su precisión posicional. El ejercicio práctico realizado no solo evalúa la transferencia de geometrías, sino que profundiza en la importancia de la parametrización de la escala de salida. Como se demostrará a continuación, la correcta definición de este factor es determinante para asegurar que los símbolos, bloques y entidades gráficas mantengan proporciones lógicas y manejables dentro de herramientas como Autodesk Civil 3D, garantizando así la utilidad del archivo en fases de diseño y construcción.
+
+## Migración de Bases de Datos (.mdb)
+Se trabajó en la recuperación de datos almacenados en formatos antiguos de Microsoft Access (.mdb) que presentan limitaciones de compatibilidad en entornos modernos de 64 bits.
+
+**Procedimiento:** Se utilizó QGIS para leer el archivo `GreenvalleyDB.mdb`.
+**Conversión:** Se aplicó la herramienta de empaquetado de capas para migrar la información hacia un formato **GeoPackage (.gpkg)**, asegurando que las 7 capas originales mantuvieran su integridad.
+
+::: {#fig-qgis-1}
+![Interfaz de QGIS tras la migración exitosa a GeoPackage. Se observan las 7 capas integradas y el SRC EPSG:26911 configurado.](Imag_Clase_4\Imagen1.png){fig-align="center" height="400px"}
+
+7 Capas de .dbm cargadas en QGIS
+:::
+
+Como se observa en la @fig-qgis-1, la migración permitió no solo recuperar el acceso a los datos, sino también centralizarlos en un único contenedor `.gpkg`, manteniendo la simbología básica y la integridad topográfica entre puntos, líneas y polígonos.
+
+::: {.callout-note}
+## Reflexión Técnica 1
+>**Aprendizaje:** Se comprendió que la evolución tecnológica no siempre es retrocompatible. El formato `.mdb` (Microsoft Access) representa una limitación de software heredado que las plataformas modernas de 64 bits, como ArcGIS Pro, han dejado de soportar de forma nativa. Este ejercicio evidencia que un especialista en Geomática debe estar preparado para enfrentar la obsolescencia de los formatos de almacenamiento.
+:::
+
+::: {.callout-note}
+## Reflexión Técnica 2
+>**Aprendizaje:** Gracias a las librerías **GDAL/OGR** integradas en QGIS, es posible realizar el "rescate" de datos que quedarían inaccesibles en entornos cerrados. La capacidad de QGIS para actuar como intermediario entre tecnologías antiguas y modernas es una competencia clave para garantizar la continuidad de la información geográfica.
+:::
+
+::: {.callout-tip}
+>**Aprendizaje:** Al realizar la migración, se observó la transición hacia estándares más eficientes. Mientras que el `.mdb` está limitado por el tamaño (2GB) y la dependencia de Windows, el **GeoPackage** es un estándar abierto basado en SQLite, multiplataforma, más ligero y capaz de almacenar múltiples capas (vectoriales y ráster) en un solo archivo, facilitando el intercambio de datos sin pérdida de integridad.
+:::
+
+## Exportación de capas vectoriales a formatos CAD (.dxf)
+En este ejercicio se exportaron las capas urbanas para su uso en software de ingeniería, manteniendo la precisión de las coordenadas.
+
+**Procedimiento en QGIS:**
+1. Se accedió al menú `Proyecto -> Importar/Exportar -> Exportar proyecto a DXF`.
+2. Se seleccionaron las capas provenientes de la base de datos `GreenvalleyDB`.
+3. Se configuró el SRC (Sistema de Referencia de Coordenadas) y se guardó el archivo como `Archivo_CAD.dxf` y `Archivo_CAD_1000.dxf` a diferentes escalas.
+
+::: {.callout-tip}
+### Reflexión Técnica: La importancia de la escala de simbología en la exportación DXF
+Al exportar datos desde un SIG hacia un entorno CAD, el parámetro de **Escala de Simbología** es crítico para la legibilidad del dibujo. Como se evidencia en la comparativa, una escala pequeña (1:1,000,000) interpreta que los símbolos deben ser visibles desde una perspectiva global, lo que resulta en bloques gigantescos que saturan el espacio de trabajo. Por el contrario, al ajustar la escala a **1:1,000**, el software asigna un tamaño proporcional a la unidad de medida del mapa, permitiendo que los puntos y líneas sean manejables, precisos y estéticamente correctos dentro de Civil 3D. **Regla de oro:** Siempre defina la escala de exportación pensando en el nivel de detalle final que requerirá el plano en el CAD.
+:::
+
+::: {#fig-comparativa-cad layout-ncol=2}
+![Escala Incorrecta (1:1,000,000)](Imag_Clase_4\ExportCAD_Escala_1.png)
+
+![Escala Correcta (1:1,000)](Imag_Clase_4\ExportCAD_Escala_1000.png)
+
+Comparativa del impacto de la escala de simbología en la interoperabilidad SIG-CAD.
+:::
+
+## Gestión de imágenes Ráster y Archivos World
+Se trabajó con imágenes escaneadas y satelitales, optimizando su visualización y corrigiendo su ubicación espacial.
+
+### Despliegue optimizado (RGB)
+Para la imagen `caleriza.tif`, se ajustó el remuestreo para mejorar la legibilidad del texto escaneado.
+* **Ajuste:** Se cambió el tipo de remuestreo de *Nearest Neighbor* (Vecino más cercano) a **Bilineal**, eliminando el efecto de pixelado en los bordes de las letras.
+
+::: {#fig-caleriza-bilineal}
+![alt text](Imag_Clase_4\3cambio a bilineal.png)
+{fig-align="center"}
+Comentario de interpretación:
+En la @fig-caleriza-bilineal se observa el mapa topográfico "Caleriza del Oliva". Al cambiar el método de remuestreo de Nearest Neighbor (Vecino más cercano) a Bilineal, el software realiza un promedio ponderado de los valores de los píxeles adyacentes. El resultado es una suavización notable en las curvas de nivel y, especialmente, en la tipografía de los nombres geográficos. Se elimina el efecto de "serruchado" o pixelado, permitiendo una lectura fluida incluso a escalas de visualización detalladas (1:3,472 en este caso).
+
+Configuración de renderizado RGB y remuestreo dinámico para la cartografía "Caleriza"
+:::
+
+### Georreferenciación mediante archivo World (.tfw)
+Se vinculó la imagen `5O9MTN.tif` con un archivo de texto `.tfw` que contiene los parámetros de escala, rotación y coordenadas de origen.
+
+::: {.callout-important}
+### Nota sobre el archivo World
+Para que QGIS reconozca el archivo `.tfw`, este debe tener el **mismo nombre** que la imagen y estar en la misma carpeta. Además, se debe definir manualmente el SRC (en este caso **EPSG:23030 - ED50 / UTM zone 30N**) para que la imagen se posicione correctamente.
+:::
+
+::: {#fig-qgis-2}
+![Validación cartográfica y superposición espacial de la capa 5O9MTN.tif georreferenciada en EPSG:23030.](Imag_Clase_4\Raster1.png){fig-align="center" height="400px"}
+
+7 Imagen Raster Georreferenciada
+:::
+
+::: {.callout-tip}
+### El archivo World como herramienta de interoperabilidad
+La importancia de este ejercicio reside en entender que la georreferenciación no siempre reside "dentro" del archivo (como en un GeoTIFF). El archivo `.tfw` es una solución agnóstica y ligera que permite que imágenes de diversos formatos sean interpretadas por cualquier software SIG. La validación visual mediante la superposición con servicios de mapas en la nube (OSM/Google) es el paso definitivo para asegurar que los datos son aptos para el análisis espacial posterior.
+:::
+
+## Operaciones de conversión: Vectorial a Ráster (Rasterización)
+### Puntos a Raster
+Se realizó ejercicio de conversión del modelo vectorial al modelo de celdas (ráster), asignando valores basados en atributos específicos.
+
+::: {.callout-important}
+### La importancia de la resolución espacial (151m)
+Un paso crítico en este ejercicio fue la medición de la distancia entre puntos antes de la conversión. Al elegir una resolución de **151 metros**, se aseguró que cada celda contuviera exactamente un punto de muestreo. 
+- **Si la celda fuera mucho más grande:** perderíamos detalle y varios puntos quedarían "atrapados" en un solo píxel, promediando sus valores.
+- **Si la celda fuera mucho más pequeña:** generaríamos muchos píxeles vacíos (NoData) entre los puntos, creando un efecto de "tablero de ajedrez" incompleto.
+:::
+
+| Tipo de Vector | Capa de Entrada | Campo de Atributo | Resolución (Celda) |
+|---------------|-----------------|-------------------|--------------------|
+| Puntos        | `Belvisma.shp`  | `Data_Value` (Altitud) | 151 m              |
+
+::: {#fig-rasterizacion}
+![Resultado de la conversión de puntos a ráster](Imag_Clase_4\Raster2.png){fig-align="center"}
+
+Resultado de uso de la herramienta `Rasterize (vector to raster)` en QGIS.
+:::
+
+### Lineas a Raster
+Se realizó ejercicio de conversión del modelo vectorial al modelo de celdas (ráster), asignando valores basados en atributos específicos.
+
+| Tipo de Vector | Capa de Entrada | Campo de Atributo | Resolución (Celda) |
+|---------------|-----------------|-------------------|--------------------|
+| Líneas        | `Carbelvi.shp`  | `Codicar` (Tipo vía)   | 25 m               |
+
+::: {#fig-rasterizacion}
+![Resultado de la conversión de lineas a ráster](Imag_Clase_4\Raster3.png){fig-align="center"}
+
+Resultado de uso de la herramienta `Rasterize (vector to raster)` en QGIS.
+:::
+
+### Polígonos a Raster
+Se realizó ejercicio de conversión del modelo vectorial al modelo de celdas (ráster), asignando valores basados en atributos específicos.
+
+| Tipo de Vector | Capa de Entrada | Campo de Atributo | Resolución (Celda) |
+|---------------|-----------------|-------------------|--------------------|
+| Polígonos     | `mfebelvis.shp` | `USO_IFN` (Uso suelo)  | 25 m               |
+
+::: {#fig-rasterizacion}
+![Resultado de la conversión de polígonos a ráster](Imag_Clase_4\Raster4.png){fig-align="center"}
+
+Resultado de uso de la herramienta `Rasterize (vector to raster)` en QGIS.
+:::
+
+## Operaciones de conversión: Ráster a Vectorial (Vectorización)
+Para cerrar el ciclo de interoperabilidad, se convirtieron los rásteres generados nuevamente a formato vectorial (polígonos y líneas).
+
+Se procesó el ráster de carreteras generado anteriormente para recuperar la red vial en formato vectorial.
+
+En esta práctica, se utilizó el algoritmo `r.to.vect` del proveedor **GRASS**, el cual ofrece una mayor precisión topográfica que los métodos de conversión estándar.
+
+| Tipo de Objeto | Herramienta GRASS | Parámetro Clave |
+| :--- | :--- | :--- |
+| **Líneas** | `r.to.vect` | Feature type: **line** |
+| **Áreas** | `r.to.vect` | Feature type: **area** |
+
+::: {#fig-vector-lineas}
+![Resultado de la vectorización de líneas utilizando el módulo r.to.vect de GRASS.](Imag_Clase_4\Poligononizado_grass.png){fig-align="center"}
+**Interpretación:** 
+Como se observa en la @fig-vector-lineas, el algoritmo traza líneas continuas a través de los centroides de los píxeles alineados. La ventaja de utilizar GRASS es que permite obtener una red conectada, ideal para futuros análisis de redes de transporte, minimizando el error de "escalonado" propio del modelo ráster.
+:::
+
+Se transformó el ráster temático de cobertura forestal (`mfebelvis.tif`) en un archivo de polígonos, agrupando píxeles adyacentes con el mismo valor de clasificación.
+
+::: {#fig-vector-areas}
+![Conversión de ráster temático a polígonos (áreas) con el motor de GRASS.](Imag_Clase_4\Poligononizado_grass_2.png){fig-align="center"}
+
+**Interpretación:** 
+En la @fig-vector-areas se muestra la reconstrucción de las zonas de uso de suelo. Cada polígono resultante hereda el código numérico original en su tabla de atributos (bajo la columna `value`), permitiendo que la información temática se conserve íntegra durante la migración del modelo ráster al vectorial.
+:::
+
+## Integración con PostGIS (Ejercicio 9)
+Se exploró la carga de datos en bases de datos espaciales. A diferencia de ArcGIS Pro, que puede presentar el **ERROR 000210** debido a restricciones de esquemas y permisos, **QGIS actuó como un "puente" eficaz** permitiendo la carga directa mediante el *Administrador de Bases de Datos (DB Manager)*.
+
+En este ejercicio se superaron las limitaciones de permisos y esquemas que suelen presentarse en clientes propietarios, utilizando a QGIS como un puente de interoperabilidad robusto.
+
+### Carga de datos mediante el Administrador de BBDD
+Se utilizó la herramienta **DB Manager (Administrador de Bases de Datos)** de QGIS para conectar con el contenedor local de PostGIS e importar el shapefile `mfebelvis.shp`.
+
+::: {#fig-postgis-import layout-ncol=2}
+![Mensaje de confirmación de importación exitosa de la capa vectorial hacia el esquema público.](Imag_Clase_4\Conexion_base_D.png)
+
+![Vista previa de la tabla mfebelvis almacenada dentro de la base de datos PostGIS_UNAL.](Imag_Clase_4\Conexion_base_D2.png)
+
+Validación de la carga y almacenamiento de datos en entorno PostgreSQL/PostGIS.
+:::
+
+**Interpretación de resultados:**
+Como se observa en la @fig-postgis-import, el proceso culminó sin errores. A través de la "Vista preliminar" del Administrador de BBDD, se confirma que la geometría de los polígonos y sus atributos alfanuméricos están ahora integrados en el servidor de base de datos, listos para ser consultados mediante lenguaje SQL o servidos a través de la web.
+
+---
+
+## Evaluación Final del Capítulo
+
+### Ejercicio 1: Intercambio KML para Google Earth, 
+
+#### Proceso de Exportación en QGIS
+Para garantizar que el archivo sea legible por visores globales, se realizó la exportación transformando el SRC original (proyectado) al sistema estándar de Google Earth.
+
+::: {#fig-qgis-kml}
+![alt text](Imag_Clase_4\fig-qgis-kml.png)
+{fig-align="center"}
+Comentario técnico: Como se observa en la @fig-qgis-kml, el proceso se realizó mediante la función "Guardar objetos como...", forzando el cambio de SRC a EPSG:4326 - WGS 84. Esta transformación es crítica, ya que el formato KML no admite coordenadas planas (metros) para su correcta visualización en entornos web 3D.
+
+Vista de Capa en QGIS a esportar a KML
+:::
+
+#### Validación en Google Earth Pro
+La validación final consiste en verificar que el polígono se posicione exactamente sobre la realidad geográfica del terreno.
+
+::: {#fig-google-earth}
+![alt text](Imag_Clase_4\fig-google-earth.png)
+{fig-align="center"}
+Interpretación de resultados: La @fig-google-earth confirma el éxito del procedimiento. El polígono (delimitado en rojo) se superpone con total precisión sobre la zona de interés (cercana al Aeropuerto de Madrid-Barajas). Esto demuestra que la reproyección previa en QGIS fue correcta, permitiendo la interoperabilidad entre un software SIG profesional y un visor de globos virtuales.
+
+Vista en Google Earth, compronamdo la exportación
+:::
+
+**Respuesta técnica:** Es un error intentar abrir un KML con coordenadas planas (metros) en Google Earth porque este visor trabaja exclusivamente en coordenadas geográficas (**WGS84 - EPSG:4326**). Decimos que no tiene "proyección al vuelo" porque no transforma los datos automáticamente; si el archivo no está en WGS84, se mostrará en una ubicación incorrecta o no se visualizará.
+
+### Ejercicio 2: Eficiencia en procesos ETL
+Para garantizar la integridad espacial y el cumplimiento de las reglas de negocio establecidas, se desarrolló el siguiente procedimiento estructurado:
+
+1. Configuración Inicial del Entorno: Se estableció el Sistema de Referencia de Coordenadas (SRC) del proyecto en WGS 84 (EPSG:4326) antes de la carga del archivo .kml de puntos de interés, asegurando así una proyección inicial correcta de los datos geográficos.
+
+::: {#fig-6}
+![alt text](Imag_Clase_4\Eval_2_1.png)
+{fig-align="center"}
+
+Tabla de atributos de la capa original de Sitios de Interés, cargada inicialmente en sistema de coordenadas geográficas WGS 84
+:::
+
+2. Validación de Datos Vectoriales: Se incorporó la capa de municipios en formato Shapefile, validando que su archivo de definición de proyección (.prj) fuera reconocido correctamente por el software para evitar desplazamientos espaciales.
+
+3. Definición del SRC Métrico para Análisis: Debido a que el área de estudio se localiza en Colombia, se cambió el SRC del espacio de trabajo a MAGNA-SIRGAS / Origen Nacional (EPSG:9377). Esta transición a un sistema proyectado es indispensable para realizar cálculos de distancia precisos en metros.
+
+4. Aplicación de Reglas de Negocio Alfanuméricas: Se ejecutó un filtro de atributos sobre la capa de municipios utilizando la expresión SQL "NMG" NOT LIKE '% %'. El operador LIKE permitió identificar patrones de texto, donde los comodines % % detectan cualquier registro que contenga espacios en blanco. Al aplicar la negación (NOT), se descartaron automáticamente todos los municipios con nombres compuestos, conservando únicamente los de nombre simple.
+
+::: {#fig-7}
+![alt text](Imag_Clase_4\Eval_2_2.png)
+{fig-align="center"}
+
+Validación de la regla de negocio alfanumérica: Atributos de la capa 'Municipios_filtrada' donde se observa la ausencia de nombres compuestos en el campo NMG.
+:::
+
+5. Generación de Capa Intermedia: El resultado del filtro anterior se exportó como una nueva capa denominada "Municipios filtrada", simplificando el procesamiento para las etapas posteriores.
+
+6. Análisis de Proximidad (Geoprocesamiento): Para determinar el área de influencia de 40 km, fue necesario primero reproyectar la capa de puntos de interés (KML) al sistema MAGNA-SIRGAS / Origen Nacional. Sobre esta capa métrica, se ejecutó una herramienta de Buffer (Amortiguador) con una distancia de 40,000 metros.
+
+::: {#fig-8}
+![alt text](Imag_Clase_4\Eval_2_3.png)
+{fig-align="center"}
+
+Generación del área de influencia (Buffer) de 40,000 metros a partir de los puntos de interés reproyectados al sistema métrico oficial.
+:::
+
+7. Filtrado por Localización Espacial: Utilizando la herramienta "Seleccionar por localización", se cruzó la capa de municipios filtrados con el área de influencia (buffer). Se aplicaron los predicados espaciales de "Intersección" y "Estar dentro de" para asegurar que solo se seleccionaran los municipios vinculados directamente al radio de acción de los puntos de interés.
+
+::: {#fig-9}
+![alt text](Imag_Clase_4\Eval_2_4.png)
+{fig-align="center"}
+
+Configuración de predicados geométricos en la herramienta 'Seleccionar por localización' para el cruce entre municipios y áreas de influencia.
+:::
+
+8. Persistencia y Exportación Final: Los municipios que cumplieron satisfactoriamente con los criterios alfanuméricos y espaciales fueron exportados a una capa final, consolidando así el resultado del proceso ETL para su posterior carga en el servidor de base de datos PostGIS.
+
+::: {#fig-10}
+![alt text](Imag_Clase_4\Eval_2_5.png)
+{fig-align="center"}
+
+Visualización cartográfica final: Municipios seleccionados (capa Mun_Finales) que cumplen con los criterios de nombre simple y proximidad de 40 km.
+:::
+
+9. El último paso del flujo ETL consistió en la persistencia de los datos procesados en una base de datos relacional-espacial. Este proceso garantiza que la información filtrada esté disponible para consultas multiusuario y análisis avanzados mediante lenguaje SQL.
+
+::: {#fig-10}
+![alt text](Imag_Clase_4\Eval_2_6.png)
+{fig-align="center"}
+
+Confirmación de la carga exitosa en el Administrador de BBDD.
+:::
+
+::: {#fig-10}
+![alt text](Imag_Clase_4\Eval_2_7.png)
+{fig-align="center"}
+
+Confirmación de la visualización de la tabla Mun_Finales en el Administrador de BBDD.
+:::
+
+**Análisis de eficiencia:** Para este proceso, es más eficiente realizar primero el **Filtro de Atributos** (por nombre). 
+* **Justificación:** Los filtros de atributos operan sobre tablas alfanuméricas (memoria RAM mínima), mientras que los filtros espaciales requieren cálculos geométricos complejos de distancias e intersecciones. Al reducir primero el número de registros por nombre, el procesador tiene que realizar mucho menos esfuerzo en el cálculo de la zona de influencia de 40 km.
+
+### Reflexión sobre Interoperabilidad
+El uso de QGIS como "puente" facilita la carga de datos en PostGIS porque gestiona de manera más flexible la creación de tablas y el manejo de esquemas (como el esquema `public`), superando las limitaciones de licenciamiento o configuración que a veces impone el software privativo en conexiones directas a bases de datos nativas.
+
+
+
+
+## Anexos: Estructura del Repositorio
+
+A continuación se detalla la organización de los archivos digitales que componen esta práctica, los cuales se encuentran disponibles en el repositorio de GitHub:
+
+### Archivos Principales de la Entrega
+*   **`Taller_clase_4.qmd`**: Archivo fuente del reporte en Quarto.
+*   **`Taller_clase_4.html`**: Versión web interactiva del reporte (recurso autocontenido).
+*   **`Taller_clase_4.pdf`**: Versión para impresión del reporte técnico.
+
+### Bases de Datos y Proyectos SIG
+*   **`gdb_clase_4.gpkg`**: Base de datos central en formato GeoPackage que contiene las capas migradas del ejercicio 1.
+*   **`Archivo_CAD.dxf`** y **`Archivo_CAD_1000.dxf`**: Resultados de la exportación a formato de intercambio CAD con diferentes configuraciones de escala.
+*   **Proyectos QGIS (.qgz)**: Se incluyen los archivos de proyecto para cada fase (`Líneas a Ráster`, `Polígono a Ráster`, `Raster a Vectorial`, etc.) que permiten validar la configuración de las herramientas utilizadas.
+
+### Organización de Carpetas
+*   **`Evaluación/`**: Contiene los insumos y resultados de la evaluación final del capítulo, incluyendo los archivos KML (`coordenadas.kml`, `KMLmfebelvis.kml`) y el proyecto de la fase ETL (`Ejercicio2_evaluación.qgz`).
+*   **`Imag_Clase_4/`**: Carpeta que aloja todas las capturas de pantalla y evidencias gráficas utilizadas en este reporte.
+*   **`Raster/`**: Almacenamiento de archivos temporales y finales de procesamiento ráster (`Belvisma2.tif`, `Carbelvi 2.tif`, etc.).
+*   **`Otros/`**: Insumos vectoriales originales en formato Shapefile utilizados durante las prácticas.
+
+---
