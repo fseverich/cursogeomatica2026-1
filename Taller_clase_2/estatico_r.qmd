@@ -1,0 +1,22 @@
+## 03 - Visualización Estática en R (Colombia)
+
+En esta sección cargamos los datos globales, filtramos para Colombia y generamos un mapa temático de la población estimada.
+
+```{r}
+library(sf)
+library(tmap)
+
+data("World")
+
+# En lugar de solo Colombia, filtramos Sudamérica para tener varios países
+sudamerica <- World[World$continent == "South America", ]
+
+tm_shape(sudamerica) +
+  tm_polygons(
+    fill = "pop_est", 
+    fill.scale = tm_scale_intervals(values = "Blues"), # Ahora sí hay intervalos
+    fill.legend = tm_legend(title = "Población Est.")
+  ) +
+  tm_compass(position = c("right", "top")) +
+  tm_scalebar(position = c("left", "bottom"))
+```

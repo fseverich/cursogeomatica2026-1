@@ -1,6 +1,6 @@
 ---
 title: "Guía Maestra: OpenClaw"
-subtitle: "Instalación, Seguridad y Orquestación de Agentes IA"
+subtitle: "Mi primer quarto"
 author: "Fernan Severich"
 date: last-modified
 lang: es

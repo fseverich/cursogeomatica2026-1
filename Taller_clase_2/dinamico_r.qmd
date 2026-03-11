@@ -1,0 +1,30 @@
+## 04 - Visualización Dinámica en R
+Este mapa muestra la ubicación de la Sede Bogotá de la Universidad Nacional usando la librería `mapview`.
+
+```{r}
+#| message: false
+#| warning: false
+
+library(sf)
+library(mapview)
+
+# 1. Crear el punto de Bogotá
+bogota <- st_as_sf(
+  data.frame(
+    name = "Sede Bogotá",
+    lon = -74.08,
+    lat = 4.63
+  ),
+  coords = c("lon", "lat"),
+  crs = 4326
+)
+
+# 2. Generar el mapa interactivo
+# Usamos @map para asegurar la compatibilidad con el renderizado de Quarto
+m <- mapview(bogota, 
+             col.regions = "red", 
+             layer.name = "Sede Bogotá UNAL",
+             label = "Sede Bogotá")
+
+m@map
+```
