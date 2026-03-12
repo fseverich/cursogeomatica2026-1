@@ -11,5 +11,4 @@ index.json
 manifest.json
 
 # Basura de renderizado de Quarto (MUY RECOMENDADO)
-*_files/
 .quarto/
