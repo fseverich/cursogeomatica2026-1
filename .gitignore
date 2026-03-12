@@ -1,7 +1,6 @@
 # Carpetas y archivos de sistema/Docker
 sig_unal_completo.tar
 sig_unal_completo/
-Clase3/
 blobs/
 docker-compose
 oci-layout
