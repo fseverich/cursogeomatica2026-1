@@ -1,0 +1,57 @@
+---
+title: "Fundamentos de programación en GEE y conceptos clave de sensores remotos"
+subtitle: "Aplicación aprendizajes Clase Geomática Básica - Taller 7"
+author: 
+  - name: "Fernán José Severich Díaz"
+  - name: "Pedro Joaquin Perilla Vargas"
+date: today
+lang: es
+number-sections: true
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    toc-title: "Contenido del Proyecto"
+    theme: cosmo
+    code-fold: true
+    smooth-scroll: true
+  pdf:
+    toc: true
+    number-sections: true
+    colorlinks: true
+    geometry: "left=2.5cm, right=2.5cm, top=2.5cm, bottom=2.5cm"
+bibliography: ref.bib
+---
+{{< pagebreak >}}
+
+## Actividades Preliminares
+1. Inicio de Qgis con Pixi
+2. Verificación de Plugin, credenciales y autenticación de GEE en Qgis
+3. Iniciar contenerdor Docker y VScode
+
+## Flujo de trabajo analítico en la nube
+La integración de los métodos descritos conforma un flujo de trabajo estandarizado para la extracción de información de sensores remotos. El diseño de algoritmos escalables exige una secuencia lógica que minimiza la transferencia masiva de datos hacia el entorno local, priorizando el cómputo en el servidor:
+
+**Definición espacial y temporal**: Establecimiento estricto de geometrías de interés (ej. límites departamentales del IGAC o áreas de estudio) y periodos cronológicos.
+Interrogación del catálogo: Selección de la colección base (ee.ImageCollection) y reducción del volumen de datos mediante .filterBounds(), .filterDate() y .filter().
+**Enmascaramiento radiométrico**: Aplicación de funciones de limpieza (.updateMask()) iteradas sobre todos los elementos de la colección utilizando el método .map().
+**Transformación y reducción**: Ejecución de álgebra de bandas (cálculo de índices espectrales) seguida de reducciones estadísticas temporales (ej. .median()) o espaciales (ej. .reduceRegion()).
+**Transferencia al cliente**: Visualización web local o exportación explícita de los tensores raster y atributos vectoriales resultantes hacia infraestructuras de almacenamiento (Google Drive, Cloud Storage) para su posterior integración en Sistemas de Información Geográfica.
+
+## Ejercicios
+La fase final del módulo consiste en la exportación e integración de los geoprocesos construidos en Google Earth Engine (GEE) hacia plataformas de escritorio para su consolidación cartográfica, así como en la resolución de retos analíticos.
+
+La exportación de objetos estructurados permite la transición fluida entre la infraestructura de nube y el software de Sistemas de Información Geográfica (SIG). A partir de los scripts desarrollados en el capítulo, seleccione dos geoprocesos distintos al ensamblaje multitemporal de luces nocturnas y a la composición en falso color. Exporte el objeto serializado en formato JSON para ambos casos e impórtelos en ArcGIS Pro y QGIS.
+
+Instrucciones:
+
+1. Ejecutar el código en Python correspondiente para generar el archivo JSON serializado.
+2. En QGIS, emplear la pestaña Load del complemento de GEE o utilizar la consola de Python para ejecutar el script de importación.
+3. En ArcGIS Pro, utilizar la herramienta Add Image to Map by Serialized Object.
+4. Diseñar la salida cartográfica final incluyendo los elementos formales (escala, leyenda, grilla de coordenadas MAGNA-SIRGAS EPSG:9377, flecha de norte) y exportar el mapa a PDF.
+5. Insertar la salida cartográfica al reporte analítico.
+
+## Referencias Preliminares
+
+::: {#refs}
+:::
