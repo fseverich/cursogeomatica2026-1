@@ -1,0 +1,2388 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.4.550">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Fernan Jose Severich Diaz (Teoría y Práctica), Raul Andrés Posada (Teoría)">
+
+<title>Levantamiento GNSS con receptor AllyNav R26: ocupación estática de punto geodésico y levantamiento RTK de borde de vía</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="53-practica_13_gnss_allynav_r26_files/libs/clipboard/clipboard.min.js"></script>
+<script src="53-practica_13_gnss_allynav_r26_files/libs/quarto-html/quarto.js"></script>
+<script src="53-practica_13_gnss_allynav_r26_files/libs/quarto-html/popper.min.js"></script>
+<script src="53-practica_13_gnss_allynav_r26_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="53-practica_13_gnss_allynav_r26_files/libs/quarto-html/anchor.min.js"></script>
+<link href="53-practica_13_gnss_allynav_r26_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="53-practica_13_gnss_allynav_r26_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="53-practica_13_gnss_allynav_r26_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="53-practica_13_gnss_allynav_r26_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="53-practica_13_gnss_allynav_r26_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<link href="53-practica_13_gnss_allynav_r26_files/libs/htmltools-fill-0.5.9/fill.css" rel="stylesheet">
+<script src="53-practica_13_gnss_allynav_r26_files/libs/htmlwidgets-1.6.4/htmlwidgets.js"></script>
+<script src="53-practica_13_gnss_allynav_r26_files/libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<link href="53-practica_13_gnss_allynav_r26_files/libs/leaflet-1.3.1/leaflet.css" rel="stylesheet">
+<script src="53-practica_13_gnss_allynav_r26_files/libs/leaflet-1.3.1/leaflet.js"></script>
+<link href="53-practica_13_gnss_allynav_r26_files/libs/leafletfix-1.0.0/leafletfix.css" rel="stylesheet">
+<script src="53-practica_13_gnss_allynav_r26_files/libs/proj4-2.6.2/proj4.min.js"></script>
+<script src="53-practica_13_gnss_allynav_r26_files/libs/Proj4Leaflet-1.0.1/proj4leaflet.js"></script>
+<link href="53-practica_13_gnss_allynav_r26_files/libs/rstudio_leaflet-1.3.1/rstudio_leaflet.css" rel="stylesheet">
+<script src="53-practica_13_gnss_allynav_r26_files/libs/leaflet-binding-2.2.3/leaflet.js"></script>
+
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+</head>
+
+<body>
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+<div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+  <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#justificación" id="toc-justificación" class="nav-link active" data-scroll-target="#justificación"><span class="header-section-number">1</span> Justificación</a></li>
+  <li><a href="#objetivo-general" id="toc-objetivo-general" class="nav-link" data-scroll-target="#objetivo-general"><span class="header-section-number">2</span> Objetivo general</a></li>
+  <li><a href="#objetivos-específicos" id="toc-objetivos-específicos" class="nav-link" data-scroll-target="#objetivos-específicos"><span class="header-section-number">3</span> Objetivos específicos</a></li>
+  <li><a href="#fundamento-técnico-del-equipo" id="toc-fundamento-técnico-del-equipo" class="nav-link" data-scroll-target="#fundamento-técnico-del-equipo"><span class="header-section-number">4</span> Fundamento técnico del equipo</a>
+  <ul class="collapse">
+  <li><a href="#especificaciones-técnicas-de-precisión-allynav-r26" id="toc-especificaciones-técnicas-de-precisión-allynav-r26" class="nav-link" data-scroll-target="#especificaciones-técnicas-de-precisión-allynav-r26"><span class="header-section-number">4.1</span> Especificaciones técnicas de precisión (AllyNav R26)</a></li>
+  </ul></li>
+  <li><a href="#metodología-de-campo" id="toc-metodología-de-campo" class="nav-link" data-scroll-target="#metodología-de-campo"><span class="header-section-number">5</span> Metodología de campo</a>
+  <ul class="collapse">
+  <li><a href="#reconocimiento-y-configuración-instrumental" id="toc-reconocimiento-y-configuración-instrumental" class="nav-link" data-scroll-target="#reconocimiento-y-configuración-instrumental"><span class="header-section-number">5.1</span> Reconocimiento y configuración instrumental</a></li>
+  <li><a href="#ocupación-del-vértice-geodésico-fase-estática" id="toc-ocupación-del-vértice-geodésico-fase-estática" class="nav-link" data-scroll-target="#ocupación-del-vértice-geodésico-fase-estática"><span class="header-section-number">5.2</span> Ocupación del vértice geodésico (Fase estática)</a></li>
+  <li><a href="#levantamiento-cinemático-de-borde-de-vía-fase-rtk" id="toc-levantamiento-cinemático-de-borde-de-vía-fase-rtk" class="nav-link" data-scroll-target="#levantamiento-cinemático-de-borde-de-vía-fase-rtk"><span class="header-section-number">5.3</span> Levantamiento cinemático de borde de vía (Fase RTK)</a>
+  <ul class="collapse">
+  <li><a href="#procedimiento-de-levantamiento-cinemático" id="toc-procedimiento-de-levantamiento-cinemático" class="nav-link" data-scroll-target="#procedimiento-de-levantamiento-cinemático"><span class="header-section-number">5.3.1</span> Procedimiento de levantamiento cinemático:</a></li>
+  </ul></li>
+  </ul></li>
+  <li><a href="#archivos-de-referencia-y-resultados" id="toc-archivos-de-referencia-y-resultados" class="nav-link" data-scroll-target="#archivos-de-referencia-y-resultados"><span class="header-section-number">6</span> Archivos de referencia y resultados</a>
+  <ul class="collapse">
+  <li><a href="#archivos-del-levantamiento-estático" id="toc-archivos-del-levantamiento-estático" class="nav-link" data-scroll-target="#archivos-del-levantamiento-estático"><span class="header-section-number">6.1</span> Archivos del levantamiento estático</a></li>
+  <li><a href="#archivos-del-levantamiento-cinemático-rtk" id="toc-archivos-del-levantamiento-cinemático-rtk" class="nav-link" data-scroll-target="#archivos-del-levantamiento-cinemático-rtk"><span class="header-section-number">6.2</span> Archivos del levantamiento cinemático RTK</a></li>
+  </ul></li>
+  <li><a href="#archivos-disponibles-para-la-práctica" id="toc-archivos-disponibles-para-la-práctica" class="nav-link" data-scroll-target="#archivos-disponibles-para-la-práctica"><span class="header-section-number">7</span> Archivos disponibles para la práctica</a>
+  <ul class="collapse">
+  <li><a href="#inventario-de-archivos-y-documentación-de-la-práctica" id="toc-inventario-de-archivos-y-documentación-de-la-práctica" class="nav-link" data-scroll-target="#inventario-de-archivos-y-documentación-de-la-práctica"><span class="header-section-number">7.1</span> Inventario de archivos y documentación de la práctica</a></li>
+  <li><a href="#consideraciones-sobre-los-formatos-de-salida" id="toc-consideraciones-sobre-los-formatos-de-salida" class="nav-link" data-scroll-target="#consideraciones-sobre-los-formatos-de-salida"><span class="header-section-number">7.2</span> Consideraciones sobre los formatos de salida</a></li>
+  <li><a href="#síntesis-de-los-métodos-de-levantamiento-realizados" id="toc-síntesis-de-los-métodos-de-levantamiento-realizados" class="nav-link" data-scroll-target="#síntesis-de-los-métodos-de-levantamiento-realizados"><span class="header-section-number">7.3</span> Síntesis de los métodos de levantamiento realizados</a></li>
+  </ul></li>
+  <li><a href="#postproceso-de-información-de-campo-trabajo-de-oficina" id="toc-postproceso-de-información-de-campo-trabajo-de-oficina" class="nav-link" data-scroll-target="#postproceso-de-información-de-campo-trabajo-de-oficina"><span class="header-section-number">8</span> Postproceso de información de campo (Trabajo de oficina)</a>
+  <ul class="collapse">
+  <li><a href="#organización-inicial-de-la-información" id="toc-organización-inicial-de-la-información" class="nav-link" data-scroll-target="#organización-inicial-de-la-información"><span class="header-section-number">8.1</span> Organización inicial de la información</a></li>
+  <li><a href="#información-de-campo-requerida" id="toc-información-de-campo-requerida" class="nav-link" data-scroll-target="#información-de-campo-requerida"><span class="header-section-number">8.2</span> Información de campo requerida</a></li>
+  <li><a href="#conversión-del-archivo-txt-a-formato-rinex" id="toc-conversión-del-archivo-txt-a-formato-rinex" class="nav-link" data-scroll-target="#conversión-del-archivo-txt-a-formato-rinex"><span class="header-section-number">8.3</span> Conversión del archivo TXT a formato RINEX</a></li>
+  <li><a href="#descarga-de-archivos-rinex-de-una-estación-permanente-del-igac" id="toc-descarga-de-archivos-rinex-de-una-estación-permanente-del-igac" class="nav-link" data-scroll-target="#descarga-de-archivos-rinex-de-una-estación-permanente-del-igac"><span class="header-section-number">8.4</span> Descarga de archivos RINEX de una estación permanente del IGAC</a></li>
+  <li><a href="#descarga-de-efemérides-precisas" id="toc-descarga-de-efemérides-precisas" class="nav-link" data-scroll-target="#descarga-de-efemérides-precisas"><span class="header-section-number">8.5</span> Descarga de efemérides precisas</a></li>
+  <li><a href="#postproceso-del-levantamiento-estático" id="toc-postproceso-del-levantamiento-estático" class="nav-link" data-scroll-target="#postproceso-del-levantamiento-estático"><span class="header-section-number">8.6</span> Postproceso del levantamiento estático</a>
+  <ul class="collapse">
+  <li><a href="#postproceso-del-levantamiento-estático-emlid-studio." id="toc-postproceso-del-levantamiento-estático-emlid-studio." class="nav-link" data-scroll-target="#postproceso-del-levantamiento-estático-emlid-studio."><span class="header-section-number">8.6.1</span> Postproceso del levantamiento estático Emlid Studio.</a></li>
+  <li><a href="#postproceso-del-levantamiento-estático-con-rtklib" id="toc-postproceso-del-levantamiento-estático-con-rtklib" class="nav-link" data-scroll-target="#postproceso-del-levantamiento-estático-con-rtklib"><span class="header-section-number">8.6.2</span> Postproceso del levantamiento estático con RTKLIB</a></li>
+  <li><a href="#resultados-de-los-postprocesos-realizados-con-las-diferentes-aplicaciones" id="toc-resultados-de-los-postprocesos-realizados-con-las-diferentes-aplicaciones" class="nav-link" data-scroll-target="#resultados-de-los-postprocesos-realizados-con-las-diferentes-aplicaciones"><span class="header-section-number">8.6.3</span> Resultados de los postprocesos realizados con las diferentes aplicaciones</a></li>
+  <li><a href="#con-emlid-studio" id="toc-con-emlid-studio" class="nav-link" data-scroll-target="#con-emlid-studio"><span class="header-section-number">8.6.4</span> Con Emlid Studio</a></li>
+  <li><a href="#con-rtklib" id="toc-con-rtklib" class="nav-link" data-scroll-target="#con-rtklib"><span class="header-section-number">8.6.5</span> Con RTKLIB</a></li>
+  <li><a href="#corrección-del-levantamiento-cinemático-rtk" id="toc-corrección-del-levantamiento-cinemático-rtk" class="nav-link" data-scroll-target="#corrección-del-levantamiento-cinemático-rtk"><span class="header-section-number">8.6.6</span> Corrección del levantamiento cinemático RTK</a></li>
+  </ul></li>
+  <li><a href="#síntesis-del-flujo-de-trabajo" id="toc-síntesis-del-flujo-de-trabajo" class="nav-link" data-scroll-target="#síntesis-del-flujo-de-trabajo"><span class="header-section-number">8.7</span> Síntesis del flujo de trabajo</a></li>
+  <li><a href="#recomendacionesrecursos-adicionales-para-el-postproceso" id="toc-recomendacionesrecursos-adicionales-para-el-postproceso" class="nav-link" data-scroll-target="#recomendacionesrecursos-adicionales-para-el-postproceso"><span class="header-section-number">8.8</span> Recomendaciones/recursos adicionales para el postproceso</a></li>
+  </ul></li>
+  <li><a href="#actividad-final-comparación-de-resultados-y-corrección-del-levantamiento-rtk" id="toc-actividad-final-comparación-de-resultados-y-corrección-del-levantamiento-rtk" class="nav-link" data-scroll-target="#actividad-final-comparación-de-resultados-y-corrección-del-levantamiento-rtk"><span class="header-section-number">9</span> Actividad final: comparación de resultados y corrección del levantamiento RTK</a>
+  <ul class="collapse">
+  <li><a href="#objetivo-de-la-actividad" id="toc-objetivo-de-la-actividad" class="nav-link" data-scroll-target="#objetivo-de-la-actividad"><span class="header-section-number">9.1</span> Objetivo de la actividad</a></li>
+  <li><a href="#información-que-debe-utilizar-el-estudiante" id="toc-información-que-debe-utilizar-el-estudiante" class="nav-link" data-scroll-target="#información-que-debe-utilizar-el-estudiante"><span class="header-section-number">9.2</span> Información que debe utilizar el estudiante</a></li>
+  <li><a href="#parte-1.-comparación-de-coordenadas-proyectadas" id="toc-parte-1.-comparación-de-coordenadas-proyectadas" class="nav-link" data-scroll-target="#parte-1.-comparación-de-coordenadas-proyectadas"><span class="header-section-number">9.3</span> Parte 1. Comparación de coordenadas proyectadas</a></li>
+  <li><a href="#parte-2.-cálculo-del-error-horizontal" id="toc-parte-2.-cálculo-del-error-horizontal" class="nav-link" data-scroll-target="#parte-2.-cálculo-del-error-horizontal"><span class="header-section-number">9.4</span> Parte 2. Cálculo del error horizontal</a></li>
+  <li><a href="#parte-3.-corrección-del-levantamiento-cinemático-rtk" id="toc-parte-3.-corrección-del-levantamiento-cinemático-rtk" class="nav-link" data-scroll-target="#parte-3.-corrección-del-levantamiento-cinemático-rtk"><span class="header-section-number">9.5</span> Parte 3. Corrección del levantamiento cinemático RTK</a></li>
+  <li><a href="#parte-4.-representación-sobre-mapa-base" id="toc-parte-4.-representación-sobre-mapa-base" class="nav-link" data-scroll-target="#parte-4.-representación-sobre-mapa-base"><span class="header-section-number">9.6</span> Parte 4. Representación sobre mapa base</a></li>
+  <li><a href="#parte-5.-comentario-técnico" id="toc-parte-5.-comentario-técnico" class="nav-link" data-scroll-target="#parte-5.-comentario-técnico"><span class="header-section-number">9.7</span> Parte 5. Comentario técnico</a></li>
+  <li><a href="#entregables" id="toc-entregables" class="nav-link" data-scroll-target="#entregables"><span class="header-section-number">9.8</span> Entregables</a></li>
+  </ul></li>
+  </ul>
+</nav>
+</div>
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Levantamiento GNSS con receptor AllyNav R26: ocupación estática de punto geodésico y levantamiento RTK de borde de vía</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Fernan Jose Severich Diaz (Teoría y Práctica), Raul Andrés Posada (Teoría) </p>
+          </div>
+  </div>
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<blockquote class="blockquote">
+<p>Nota: Fundamentación teórica y desarrollo práctico elaborados por <em>Fernan Jose Severich Diaz</em>, con la colaboración de <em>Raul Andrés Posada</em> en el componente teórico</p>
+</blockquote>
+<div id="fig-foto0" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-foto0-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="53-practica_13_gnss_allynav_r26_files/img0.png" class="img-fluid figure-img" style="width:50.0%">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-foto0-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: Equipo AllyNAV R26
+</figcaption>
+</figure>
+</div>
+<section id="justificación" class="level1" data-number="1">
+<h1 data-number="1"><span class="header-section-number">1</span> Justificación</h1>
+<p>La presente práctica aplica los fundamentos operativos del posicionamiento GNSS mediante dos metodologías fundamentales en topografía y geodesia: el levantamiento <strong>estático</strong> y el levantamiento <strong>cinemático</strong> en tiempo real (RTK). Para este ejercicio se emplean receptores GNSS AllyNav R26 con comunicación por radio UHF, lo cual permite trabajar en configuración base–rover y comprender el principio de las correcciones diferenciales transmitidas en tiempo real.</p>
+<p>En una primera fase, se realiza una ocupación estática sobre un vértice geodésico conocido, con el fin de registrar observaciones GNSS crudas para su posterior evaluación o postproceso. En una segunda fase, el receptor ubicado sobre el punto de referencia se configura como estación base RTK, transmitiendo correcciones diferenciales al receptor móvil o rover para el levantamiento del borde de vía.</p>
+<p>El equipo AllyNav R26 integra radio UHF incorporada, operación dual base/rover, almacenamiento interno, soporte para datos estáticos en formato binario, salida diferencial RTCM 3.X y compensación de inclinación mediante IMU. Estas características permiten desarrollar una experiencia integral que abarca desde la observación sobre un vértice de control hasta la captura dinámica de infraestructura lineal en campo.</p>
+</section>
+<section id="objetivo-general" class="level1" data-number="2">
+<h1 data-number="2"><span class="header-section-number">2</span> Objetivo general</h1>
+<p>Desarrollar una práctica de campo y oficina para el uso de equipos GNSS con radio UHF, aplicando una ocupación estática sobre un punto de referencia y un levantamiento RTK en un segmento vial dentro del campus de la UNAL, con el fin de evaluar la calidad posicional de las observaciones, diferenciar precisión relativa y exactitud absoluta, y familiarizar a los estudiantes con procedimientos reales de levantamiento geoespacial.</p>
+</section>
+<section id="objetivos-específicos" class="level1" data-number="3">
+<h1 data-number="3"><span class="header-section-number">3</span> Objetivos específicos</h1>
+<ul>
+<li>Reconocer los componentes, prestaciones y configuración básica del receptor GNSS AllyNav R26 con radio UHF integrada.</li>
+<li>Comprender la diferencia operativa entre las metodologías de levantamiento estático y cinemático (RTK).</li>
+<li>Realizar observaciones GNSS en modo estático sobre el vértice geodésico <code>GPS-001 DODF</code> de la Universidad Nacional de Colombia.</li>
+<li>Configurar un equipo GNSS en modo base y otro en modo rover para ejecutar un levantamiento RTK sobre el borde de una vía.</li>
+<li>Verificar parámetros de calidad del levantamiento RTK, tales como tipo de solución, número de satélites, HRMS, VRMS, edad de corrección y estabilidad de la comunicación UHF.</li>
+<li>Analizar la diferencia entre precisión nominal del equipo, precisión relativa del levantamiento y exactitud absoluta respecto al sistema de referencia utilizado.</li>
+</ul>
+</section>
+<section id="fundamento-técnico-del-equipo" class="level1" data-number="4">
+<h1 data-number="4"><span class="header-section-number">4</span> Fundamento técnico del equipo</h1>
+<p>El receptor AllyNav R26 es un equipo GNSS de alta precisión orientado a aplicaciones de topografía, agricultura de precisión, minería y construcción. Permite trabajar con múltiples constelaciones GNSS, operar en modo base o rover, transmitir correcciones diferenciales mediante radio UHF en el rango de 410 a 470 MHz y generar datos diferenciales en formato RTCM 3.X. Adicionalmente, registra datos estáticos en formato binario y entrega información de posicionamiento en formato NMEA-0183.</p>
+<p>De acuerdo con la ficha técnica del fabricante, el equipo presenta una precisión nominal en modo RTK de 8 mm + 1 ppm RMS en horizontal y 15 mm + 1 ppm RMS en vertical. En modo estático, la precisión nominal indicada es de 2.5 mm + 1 ppm RMS en horizontal y 5 mm + 1 ppm RMS en vertical. En posicionamiento simple, sin correcciones diferenciales, la precisión reportada es de 1.5 m en horizontal y 2.5 m en vertical.</p>
+<p>El receptor también incorpora compensación de inclinación mediante IMU, con un rango de trabajo de 0° a 60° y una precisión de 2.5 cm dentro de los primeros 30°. Cuenta con una confiabilidad de inicialización RTK superior al 99.9 %, tiempo típico de inicialización menor a 5 segundos y tasa de actualización de datos configurable hasta 20 Hz. Estas especificaciones corresponden a condiciones nominales de operación y pueden variar según la geometría satelital, la longitud de línea base, las obstrucciones, el multipath, la correcta configuración de antena y el tipo de solución obtenida</p>
+<section id="especificaciones-técnicas-de-precisión-allynav-r26" class="level2" data-number="4.1">
+<h2 data-number="4.1" class="anchored" data-anchor-id="especificaciones-técnicas-de-precisión-allynav-r26"><span class="header-section-number">4.1</span> Especificaciones técnicas de precisión (AllyNav R26)</h2>
+<div id="tbl-specs-completa" class="quarto-float anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-specs-completa-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;1: Especificaciones técnicas detalladas del receptor
+</figcaption>
+<div aria-describedby="tbl-specs-completa-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="table">
+<colgroup>
+<col style="width: 52%">
+<col style="width: 47%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Parámetro</th>
+<th style="text-align: left;">Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><strong>Posicionamiento simple</strong> (H / V)</td>
+<td style="text-align: left;">1.5 m / 2.5 m</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>Precisión RTK</strong> (Horizontal)</td>
+<td style="text-align: left;">8 mm + 1 ppm RMS</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>Precisión RTK</strong> (Vertical)</td>
+<td style="text-align: left;">15 mm + 1 ppm RMS</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>Precisión Estática</strong> (Horizontal)</td>
+<td style="text-align: left;">2.5 mm + 1 ppm RMS</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>Precisión Estática</strong> (Vertical)</td>
+<td style="text-align: left;">5 mm + 1 ppm RMS</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>Precisión por inclinación IMU</strong></td>
+<td style="text-align: left;">2.5 cm (dentro de 30°)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>Frecuencia Radio UHF</strong></td>
+<td style="text-align: left;">410–470 MHz</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>Formatos de salida diferencial</strong></td>
+<td style="text-align: left;">RTCM 3.X</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>Formato de datos estáticos</strong></td>
+<td style="text-align: left;">Binario</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>Tasa de actualización de datos</strong></td>
+<td style="text-align: left;">Hasta 20 Hz</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>Confiabilidad de inicialización RTK</strong></td>
+<td style="text-align: left;">&gt; 99.9%</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>Tiempo típico de inicialización</strong></td>
+<td style="text-align: left;">&lt; 5 s</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+</section>
+</section>
+<section id="metodología-de-campo" class="level1" data-number="5">
+<h1 data-number="5"><span class="header-section-number">5</span> Metodología de campo</h1>
+<section id="reconocimiento-y-configuración-instrumental" class="level2" data-number="5.1">
+<h2 data-number="5.1" class="anchored" data-anchor-id="reconocimiento-y-configuración-instrumental"><span class="header-section-number">5.1</span> Reconocimiento y configuración instrumental</h2>
+<p>Al inicio de la práctica se identifican los componentes del sistema: receptores, baterías, cargadores, bastón, trípode, base nivelante y accesorios de comunicación. Se accede a la interfaz de configuración del AllyNav R26 para establecer el modo de operación correspondiente, los parámetros de la radio UHF, el tipo de datos a registrar y la altura de antena.</p>
+<p>Es indispensable registrar correctamente el nombre del punto, la altura instrumental, el método de medición de altura —vertical o inclinada según corresponda—, el tipo de antena, la hora de inicio y las condiciones generales de observación. En el caso del levantamiento RTK, también debe verificarse la coordenada asignada a la estación base, el canal o frecuencia de radio, el formato de corrección diferencial y el sistema de referencia utilizado.</p>
+</section>
+<section id="ocupación-del-vértice-geodésico-fase-estática" class="level2" data-number="5.2">
+<h2 data-number="5.2" class="anchored" data-anchor-id="ocupación-del-vértice-geodésico-fase-estática"><span class="header-section-number">5.2</span> Ocupación del vértice geodésico (Fase estática)</h2>
+<p>Se realiza la instalación del receptor sobre un trípode en el punto de coordenadas conocidas de la red geodésica de la Universidad Nacional, identificado como GPS-001 DODF.</p>
+<div id="fig-vértice-unal" class="quarto-layout-panel">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-vértice-unal-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell-subref quarto-layout-cell" data-ref-parent="fig-vértice-unal" style="flex-basis: 50.0%;justify-content: flex-start;">
+<div id="fig-Vertice" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-subfloat-fig figure">
+<div aria-describedby="fig-Vertice-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="53-practica_13_gnss_allynav_r26_files/img1.jpeg" class="img-fluid figure-img" data-ref-parent="fig-vértice-unal">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-subfloat-caption quarto-subfloat-fig" id="fig-Vertice-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+(a) Vértice DOOF UNAL
+</figcaption>
+</figure>
+</div>
+</div>
+<div class="quarto-layout-cell-subref quarto-layout-cell" data-ref-parent="fig-vértice-unal" style="flex-basis: 50.0%;justify-content: flex-start;">
+<div id="fig-rover_V" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-subfloat-fig figure">
+<div aria-describedby="fig-rover_V-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="53-practica_13_gnss_allynav_r26_files/img2.jpeg" class="img-fluid figure-img" data-ref-parent="fig-vértice-unal">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-subfloat-caption quarto-subfloat-fig" id="fig-rover_V-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+(b) Equipo AllyNav R26 en bastón (Rover) sobre Vértice
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-vértice-unal-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2: Fotos del vertice geodésico en el campus de la Universidad Nacional.
+</figcaption>
+</figure>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(leaflet)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Convertir coordenadas DMS a decimal para el mapa</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"># 4°38'8.28" N -&gt; 4.635633</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="co"># 74°5'10.79" W -&gt; -74.086331</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="fu">leaflet</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">addTiles</span>() <span class="sc">%&gt;%</span>  <span class="co"># Añade el mapa base de OpenStreetMap</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">addMarkers</span>(<span class="at">lng =</span> <span class="sc">-</span><span class="fl">74.086331</span>, <span class="at">lat =</span> <span class="fl">4.635633</span>, </span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>             <span class="at">popup =</span> <span class="st">"Vértice GPS-001 DODF&lt;br&gt;Universidad Nacional"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">setView</span>(<span class="at">lng =</span> <span class="sc">-</span><span class="fl">74.086331</span>, <span class="at">lat =</span> <span class="fl">4.635633</span>, <span class="at">zoom =</span> <span class="dv">16</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="fig-mapa-geodesico" class="cell-output-display quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-mapa-geodesico-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="leaflet html-widget html-fill-item" id="htmlwidget-794bc6eda133b64541c8" style="width:100%;height:464px;"></div>
+<script type="application/json" data-for="htmlwidget-794bc6eda133b64541c8">{"x":{"options":{"crs":{"crsClass":"L.CRS.EPSG3857","code":null,"proj4def":null,"projectedBounds":null,"options":{}}},"calls":[{"method":"addTiles","args":["https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",null,null,{"minZoom":0,"maxZoom":18,"tileSize":256,"subdomains":"abc","errorTileUrl":"","tms":false,"noWrap":false,"zoomOffset":0,"zoomReverse":false,"opacity":1,"zIndex":1,"detectRetina":false,"attribution":"&copy; <a href=\"https://openstreetmap.org/copyright/\">OpenStreetMap<\/a>,  <a href=\"https://opendatacommons.org/licenses/odbl/\">ODbL<\/a>"}]},{"method":"addMarkers","args":[4.635633,-74.086331,null,null,null,{"interactive":true,"draggable":false,"keyboard":true,"title":"","alt":"","zIndexOffset":0,"opacity":1,"riseOnHover":false,"riseOffset":250},"Vértice GPS-001 DODF<br>Universidad Nacional",null,null,null,null,{"interactive":false,"permanent":false,"direction":"auto","opacity":1,"offset":[0,0],"textsize":"10px","textOnly":false,"className":"","sticky":true},null]}],"limits":{"lat":[4.635633,4.635633],"lng":[-74.086331,-74.086331]},"setView":[[4.635633,-74.086331],16,[]]},"evals":[],"jsHooks":[]}</script>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-mapa-geodesico-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;3: Ubicación del vértice geodésico GPS-001 DODF (UNAL)
+</figcaption>
+</figure>
+</div>
+</div>
+<p>El procedimiento incluye:</p>
+<ul>
+<li>Centrado y nivelación rigurosa sobre el vértice.</li>
+<li>Medición y registro de la altura de antena, indicando el método empleado.</li>
+<li>Configuración del receptor en modo estático para registrar observaciones GNSS crudas en formato binario.</li>
+<li>Registro del nombre del punto, hora de inicio, hora final, condiciones de recepción y observaciones relevantes del entorno.</li>
+<li>Tiempo mínimo de observación de 20 minutos para fines académicos y de comparación preliminar.</li>
+</ul>
+<p>De acuerdo con la ficha técnica del AllyNav R26, la precisión nominal en modo estático es de 2.5 mm + 1 ppm RMS en horizontal y 5 mm + 1 ppm RMS en vertical. Sin embargo, dicha precisión depende del tiempo efectivo de observación, la longitud de línea base, la geometría satelital, la ausencia de obstrucciones, la correcta configuración de antena y la calidad del postproceso. Por tanto, el tiempo de 20 minutos adoptado en esta práctica debe entenderse como un criterio académico de observación corta, y no como una garantía automática de exactitud geodésica final</p>
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Important
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Nota sobre el tiempo de observación estática</strong></p>
+<p>Para efectos de la presente práctica académica se adopta un tiempo mínimo de observación de <strong>20 minutos</strong>, con el propósito de registrar datos crudos y realizar una comparación preliminar entre la solución estática y la solución RTK.</p>
+<p>No obstante, para trabajos formales, el tiempo de rastreo debe definirse en función de la distancia entre el punto observado y la base de coordenadas conocidas, así como del tipo de equipo empleado. Como referencia, el <strong>IGAC</strong> establece para levantamientos topográficos de precisión la regla:</p>
+<p><span class="math display">\[t = 15 + 5d\]</span></p>
+<p>Donde: * <span class="math inline">\(t\)</span>: corresponde al tiempo de rastreo en minutos. * <span class="math inline">\(d\)</span>: es la distancia en kilómetros a la base.</p>
+<p>Para posicionamientos estáticos con equipos de doble frecuencia y distancias menores a 80 km, se emplea también la expresión:</p>
+<p><span class="math display">\[t = 65 + 3(d - 10)\]</span></p>
+<p>En consecuencia, el tiempo de 20 minutos usado en esta práctica debe entenderse como un criterio académico y no como un tiempo suficiente para establecer control geodésico formal.</p>
+</div>
+</div>
+<p>Para esta práctica con el <strong>AllyNav R26</strong>, al ser un receptor multiconstelación y multifrecuencia, la fórmula más coherente para un posicionamiento estático formal sería:</p>
+<p><span class="math display">\[t = 65 + 3(d - 10)\]</span></p>
+<p>Pero si se trata de un levantamiento topográfico de precisión cercano a la base, también es válido mencionar la regla:</p>
+<p><span class="math display">\[t = 15 + 5d\]</span></p>
+<p><em>Se recomienda documentar ambas, aclarando que corresponden a escenarios de precisión y distancias distintas.</em></p>
+<blockquote class="blockquote">
+<p>Nota adicional: En el levantamiento estático, el receptor registra observaciones GNSS crudas, por lo cual la definición del sistema de referencia, proyección cartográfica, modelo geoidal y transformación de coordenadas se realiza principalmente durante el postproceso. No obstante, sí debe garantizarse el registro correcto del tipo de antena, altura instrumental, método de medición de altura, nombre del punto y tiempo efectivo de observación.</p>
+</blockquote>
+</section>
+<section id="levantamiento-cinemático-de-borde-de-vía-fase-rtk" class="level2" data-number="5.3">
+<h2 data-number="5.3" class="anchored" data-anchor-id="levantamiento-cinemático-de-borde-de-vía-fase-rtk"><span class="header-section-number">5.3</span> Levantamiento cinemático de borde de vía (Fase RTK)</h2>
+<p>Concluida la fase estática, el receptor ubicado sobre el vértice geodésico se configura como estación base RTK para transmitir correcciones diferenciales mediante radio UHF. El segundo receptor se configura como rover para recibir dichas correcciones en tiempo real y realizar el levantamiento del borde de vía.</p>
+<p>Esta configuración es distinta al modo de observación estática. En RTK, la función principal de la base es ocupar un punto fijo de coordenadas conocidas o previamente determinadas y transmitir correcciones diferenciales al rover. De acuerdo con la ficha técnica del AllyNav R26, la precisión nominal del método RTK es de 8 mm + 1 ppm RMS en horizontal y 15 mm + 1 ppm RMS en vertical, bajo condiciones favorables de recepción, adecuada comunicación base–rover y solución fija .</p>
+<blockquote class="blockquote">
+<p>Nota: Para garantizar exactitud absoluta, la estación base debe configurarse con las coordenadas oficiales del vértice o con coordenadas obtenidas mediante postproceso. Si la base se inicializa con coordenadas autónomas o promedio sin ajuste, los puntos levantados pueden conservar buena precisión relativa entre sí, pero presentar desplazamientos respecto al sistema oficial de referencia.</p>
+</blockquote>
+<section id="procedimiento-de-levantamiento-cinemático" class="level3" data-number="5.3.1">
+<h3 data-number="5.3.1" class="anchored" data-anchor-id="procedimiento-de-levantamiento-cinemático"><span class="header-section-number">5.3.1</span> Procedimiento de levantamiento cinemático:</h3>
+<ul>
+<li>Se verifica la comunicación entre base y rover, el canal o frecuencia UHF, el formato de corrección diferencial y el tipo de solución obtenida.</li>
+<li>Se aceptan preferiblemente puntos con solución fija —Fixed—, comunicación estable y valores adecuados de precisión reportada.</li>
+<li>El operador del rover se desplaza por el borde de la vía capturando vértices de manera rápida y dinámica, registrando observaciones relevantes en los puntos donde existan obstrucciones, pérdida de señal o dificultades de medición.</li>
+<li>Se monitorean parámetros de calidad como número de satélites, geometría satelital, edad de corrección, HRMS, VRMS y estabilidad de la comunicación UHF.</li>
+<li>Los puntos capturados con solución flotante —Float—, pérdida de corrección, alta edad de corrección o valores elevados de HRMS/VRMS deberán repetirse o marcarse como observaciones de baja confiabilidad.</li>
+<li>La compensación de inclinación se emplea únicamente cuando la IMU se encuentre correctamente inicializada y el ángulo de inclinación esté dentro del rango recomendado por el fabricante.</li>
+</ul>
+</section>
+</section>
+</section>
+<section id="archivos-de-referencia-y-resultados" class="level1" data-number="6">
+<h1 data-number="6"><span class="header-section-number">6</span> Archivos de referencia y resultados</h1>
+<p>Durante la práctica se generan y utilizan diferentes tipos de archivos, dependiendo de la metodología de levantamiento empleada. En términos generales, se cuenta con información asociada al levantamiento estático, información correspondiente al levantamiento cinemático RTK y archivos de referencia técnica y geodésica.</p>
+<section id="archivos-del-levantamiento-estático" class="level2" data-number="6.1">
+<h2 data-number="6.1" class="anchored" data-anchor-id="archivos-del-levantamiento-estático"><span class="header-section-number">6.1</span> Archivos del levantamiento estático</h2>
+<p>Durante el levantamiento estático, el receptor AllyNav R26 instalado sobre el punto geodésico registra internamente las observaciones GNSS durante el tiempo de ocupación definido para la práctica. En este modo, el equipo almacena en su memoria interna un archivo en formato TXT, generado directamente por el receptor.</p>
+<p>Este archivo contiene la información registrada durante la ocupación estática, correspondiente a las observaciones y datos de navegación capturados por el equipo mientras permaneció instalado sobre el vértice. De acuerdo con la ficha técnica del AllyNav R26, el equipo permite almacenar datos estáticos en formato binario y trabajar con información GNSS para su posterior procesamiento .</p>
+<p>Posteriormente, el archivo generado por el receptor se descarga al computador y puede ser convertido a formato RINEX mediante diferentes aplicaciones especializadas. En esta práctica se utiliza el software NovAtel Convert, con el cual es posible transformar el archivo TXT descargado del equipo en archivos RINEX.</p>
+<p>El formato RINEX es ampliamente utilizado y aceptado por diferentes programas de postproceso GNSS, por lo cual permite cargar las observaciones en aplicaciones como RTKLIB, Leica Geo Office u otros programas destinados al procesamiento diferencial o estático de observaciones GNSS.</p>
+<p>En síntesis, para la fase estática se tiene el siguiente flujo de información:</p>
+<table class="table">
+<colgroup>
+<col style="width: 12%">
+<col style="width: 21%">
+<col style="width: 65%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Etapa</th>
+<th>Archivo o formato</th>
+<th>Descripción</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Registro en campo</td>
+<td>TXT generado por el receptor</td>
+<td>Archivo almacenado en la memoria interna del AllyNav R26 durante la ocupación estática</td>
+</tr>
+<tr class="even">
+<td>Descarga</td>
+<td>TXT descargado al computador</td>
+<td>Archivo original de observaciones y navegación registrado por el equipo</td>
+</tr>
+<tr class="odd">
+<td>Conversión</td>
+<td>RINEX</td>
+<td>Archivo convertido mediante NovAtel Convert para ser usado en programas de postproceso</td>
+</tr>
+<tr class="even">
+<td>Postproceso</td>
+<td>Resultados de coordenadas</td>
+<td>Coordenadas ajustadas o procesadas a partir de las observaciones estáticas</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="archivos-del-levantamiento-cinemático-rtk" class="level2" data-number="6.2">
+<h2 data-number="6.2" class="anchored" data-anchor-id="archivos-del-levantamiento-cinemático-rtk"><span class="header-section-number">6.2</span> Archivos del levantamiento cinemático RTK</h2>
+<p>Para el levantamiento cinemático RTK, el receptor rover captura la información de los puntos levantados mientras se encuentra enlazado a la estación base mediante radios UHF. En esta configuración, la base transmite correcciones diferenciales y el rover determina en tiempo real las coordenadas de los puntos observados.</p>
+<p>La captura, almacenamiento y administración de la información del levantamiento RTK se realiza a través del colector de datos y de la aplicación de campo utilizada con el equipo. Para esta práctica se emplea la aplicación <em>AllyPad</em>, desde la cual se crea el proyecto, se configura el sistema de referencia, se definen los parámetros de proyección y se almacenan los puntos capturados en campo.</p>
+<p>Al momento de crear el proyecto en el colector, se debe definir correctamente el datum, el elipsoide, el modelo de altura a emplear —altura elipsoidal o geoide, si se dispone de uno— y los parámetros de proyección. Estos parámetros deben ser coherentes con las coordenadas asignadas a la estación base al momento de configurarla. En esta práctica, el colector se configuró para trabajar con el sistema MAGNA-SIRGAS / Origen Nacional, también conocido como el origen único nacional de Colombia.</p>
+<p>Durante el levantamiento, la aplicación almacena información asociada a cada punto capturado, incluyendo nombre o numeración del punto, coordenadas, altura, descripción, hora de medición, precisión reportada y referencia de la base desde la cual fue corregida la observación. Esta información es importante porque permite identificar el origen de las correcciones utilizadas, especialmente en casos donde la base se haya instalado o configurado en más de un lugar durante una jornada de campo.</p>
+<p>Una vez finalizado el levantamiento, los datos pueden exportarse desde el colector mediante Bluetooth hacia un teléfono celular, computador u otro dispositivo compatible. La información puede exportarse en diferentes formatos, dependiendo de la configuración del proyecto y de las necesidades del procesamiento posterior.</p>
+<p>Los formatos más comunes son:</p>
+<p><strong>Formatos de exportación y aplicaciones</strong></p>
+<div id="tbl-formatos-salida" class="quarto-float anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-formatos-salida-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;2: Formatos de salida y utilidad técnica de los datos levantados
+</figcaption>
+<div aria-describedby="tbl-formatos-salida-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Tipo de archivo</th>
+<th style="text-align: left;">Contenido principal</th>
+<th style="text-align: left;">Uso recomendado</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><strong>CSV</strong></td>
+<td style="text-align: left;">Nombre del punto, Este, Norte, altura y descripción</td>
+<td style="text-align: left;">Uso directo en hojas de cálculo, SIG (QGIS/ArcGIS) o CAD.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>TXT</strong></td>
+<td style="text-align: left;">Coordenadas y atributos básicos de los puntos</td>
+<td style="text-align: left;">Revisión rápida, respaldo o importación a otros programas.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>Archivo bruto (Colector)</strong></td>
+<td style="text-align: left;">Info completa: precisión, base, fecha, hora y metadatos</td>
+<td style="text-align: left;">Control de calidad y trazabilidad del levantamiento RTK.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>Coordenadas Elipsoidales</strong></td>
+<td style="text-align: left;">Latitud, longitud y altura elipsoidal</td>
+<td style="text-align: left;">Comparación geodésica o procesos de reproyección posterior.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>Coordenadas Proyectadas</strong></td>
+<td style="text-align: left;">Coordenada Este, Norte y altura</td>
+<td style="text-align: left;">Uso topográfico, cartográfico o aplicaciones de ingeniería.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+</section>
+</section>
+<section id="archivos-disponibles-para-la-práctica" class="level1" data-number="7">
+<h1 data-number="7"><span class="header-section-number">7</span> Archivos disponibles para la práctica</h1>
+<p>Con base en la información recolectada en campo, para esta práctica se cuenta principalmente con los siguientes archivos:</p>
+<section id="inventario-de-archivos-y-documentación-de-la-práctica" class="level2" data-number="7.1">
+<h2 data-number="7.1" class="anchored" data-anchor-id="inventario-de-archivos-y-documentación-de-la-práctica"><span class="header-section-number">7.1</span> Inventario de archivos y documentación de la práctica</h2>
+<div id="tbl-anexos" class="quarto-float anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-anexos-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;3: Organización de la información y archivos de respaldo
+</figcaption>
+<div aria-describedby="tbl-anexos-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="table">
+<colgroup>
+<col style="width: 29%">
+<col style="width: 70%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Archivo o directorio</th>
+<th style="text-align: left;">Descripción</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><code>R26-Datasheet.pdf</code></td>
+<td style="text-align: left;">Ficha técnica del receptor AllyNav R26: modos base/rover, radio UHF y precisiones nominales.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>red_geodesica_unal.txt</code></td>
+<td style="text-align: left;">Coordenadas oficiales del punto de referencia (IGAC/UNAL).</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>Datos de Levantamiento Estático.txt</code></td>
+<td style="text-align: left;">Datos crudos de la ocupación sobre el punto geodésico.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>RINEX/</code> (Carpeta)</td>
+<td style="text-align: left;">Archivos de observación y navegación convertidos para postproceso.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>Crudos/</code> (Carpeta)</td>
+<td style="text-align: left;">Archivos originales (binarios) descargados directamente del equipo.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>UNAL3_103121.xls</code></td>
+<td style="text-align: left;">Archivo de resultados o exportación del levantamiento de campo.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>UNALclase_102348.txt</code></td>
+<td style="text-align: left;">Archivo de exportación del levantamiento realizado en la práctica.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>UNAL_102813.txt</code></td>
+<td style="text-align: left;">Archivo de exportación adicional de los puntos levantados.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>GNSS Clase.rar</code></td>
+<td style="text-align: left;">Paquete comprimido con el backup completo (Crudos, RINEX y Estático).</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p>En el documento original ya se relacionan estos archivos como parte de los insumos de la práctica, incluyendo el datasheet del equipo, las coordenadas de referencia, los archivos TXT, XLS, el archivo comprimido y las carpetas de datos crudos y RINEX</p>
+</section>
+<section id="consideraciones-sobre-los-formatos-de-salida" class="level2" data-number="7.2">
+<h2 data-number="7.2" class="anchored" data-anchor-id="consideraciones-sobre-los-formatos-de-salida"><span class="header-section-number">7.2</span> Consideraciones sobre los formatos de salida</h2>
+<p>Es importante diferenciar los archivos generados en la fase estática de los generados en la fase RTK. En el levantamiento estático, el archivo principal corresponde al registro de observaciones del receptor, el cual posteriormente se convierte a RINEX para ser procesado. En cambio, en el levantamiento RTK, la información principal corresponde a las coordenadas de los puntos capturados en tiempo real por el rover y almacenadas en el colector de datos mediante la aplicación AllyPad.</p>
+<p>Por tanto, para esta práctica se cuenta, en general, con dos grupos de información:</p>
+</section>
+<section id="síntesis-de-los-métodos-de-levantamiento-realizados" class="level2" data-number="7.3">
+<h2 data-number="7.3" class="anchored" data-anchor-id="síntesis-de-los-métodos-de-levantamiento-realizados"><span class="header-section-number">7.3</span> Síntesis de los métodos de levantamiento realizados</h2>
+<div id="tbl-metodologia-resumen" class="quarto-float anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-metodologia-resumen-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;4: Clasificación de datos según el método de observación
+</figcaption>
+<div aria-describedby="tbl-metodologia-resumen-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="table">
+<colgroup>
+<col style="width: 24%">
+<col style="width: 20%">
+<col style="width: 56%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Grupo de información</th>
+<th style="text-align: left;">Archivo principal</th>
+<th style="text-align: left;">Propósito</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><strong>Levantamiento estático</strong></td>
+<td style="text-align: left;"><code>.TXT</code> del receptor (convertido a <strong>RINEX</strong>)</td>
+<td style="text-align: left;">Postproceso GNSS y comparación con coordenadas oficiales del vértice.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>Levantamiento RTK</strong></td>
+<td style="text-align: left;"><code>.CSV</code>, <code>.TXT</code> o formato bruto (AllyPad)</td>
+<td style="text-align: left;">Obtención de coordenadas precisas de los puntos de detalle en campo.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p>Los archivos exportados desde AllyPad pueden contener coordenadas elipsoidales —latitud, longitud y altura elipsoidal— o coordenadas proyectadas —Este, Norte y altura—, dependiendo de la configuración definida en el proyecto. Para esta práctica, cuando se requiera trabajar directamente en un sistema plano de coordenadas, se emplea la configuración correspondiente a MAGNA-SIRGAS / Origen Nacional.</p>
+<p>La información recolectada durante la práctica, incluyendo los archivos asociados al levantamiento estático, los archivos convertidos a formato RINEX, los datos crudos descargados del receptor y las exportaciones correspondientes al levantamiento cinemático RTK, se encuentra disponible en el siguiente enlace: La información se encuentra en la ruta local:</p>
+<p><code>C:\Guia_practica_GNSS\53-practica_13_gnss_allynav_r26_files\Info-campo</code></p>
+</section>
+</section>
+<section id="postproceso-de-información-de-campo-trabajo-de-oficina" class="level1" data-number="8">
+<h1 data-number="8"><span class="header-section-number">8</span> Postproceso de información de campo (Trabajo de oficina)</h1>
+<p>Como fase complementaria al trabajo de campo, se plantea una sesión de escritorio dedicada al postproceso de la información. El objetivo es que los estudiantes comprendan cómo se obtienen coordenadas ajustadas a partir de los datos brutos observados, analizando la diferencia entre una solución obtenida en tiempo real (RTK) y una solución derivada del procesamiento de oficina.</p>
+<p>Una vez revisada y organizada la información recolectada en campo, el postproceso se desarrolla en dos etapas principales: primero, el procesamiento del <strong>levantamiento estático</strong> realizado sobre la base; y posteriormente, la revisión o corrección del <strong>levantamiento cinemático RTK</strong>, el cual depende de la coordenada ajustada de dicha base.</p>
+<p>En esta práctica, el levantamiento RTK del borde de vía fue realizado tomando como referencia la estación base instalada sobre el vértice geodésico. Por esta razón, antes de validar o ajustar las coordenadas de los puntos levantados con el rover, es necesario procesar la observación estática de la base, obtener una coordenada corregida y comparar dicha coordenada con la utilizada inicialmente durante el levantamiento en campo.</p>
+<p>La finalidad de este procedimiento es determinar si existe un desplazamiento entre la coordenada inicialmente asignada a la base durante el levantamiento RTK y la coordenada obtenida mediante postproceso. En caso de existir dicho desplazamiento, las coordenadas del levantamiento cinemático podrán corregirse trasladándolas en función de la diferencia encontrada.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./53-practica_13_gnss_allynav_r26_files/Img0.png" class="img-fluid figure-img"></p>
+<figcaption>Receptor AllyNav R26 utilizado en la práctica</figcaption>
+</figure>
+</div>
+<section id="organización-inicial-de-la-información" class="level2" data-number="8.1">
+<h2 data-number="8.1" class="anchored" data-anchor-id="organización-inicial-de-la-información"><span class="header-section-number">8.1</span> Organización inicial de la información</h2>
+<p>El primer paso consiste en organizar los archivos recolectados en campo, separando la información correspondiente al levantamiento estático y la información asociada al levantamiento cinemático RTK.</p>
+<p>Para esta práctica se cuenta, en general, con dos grupos principales de archivos:</p>
+<table class="table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Grupo de información</th>
+<th>Archivo principal</th>
+<th>Propósito</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Levantamiento estático</td>
+<td>Archivo TXT generado por el receptor</td>
+<td>Conversión a RINEX y postproceso de la base</td>
+</tr>
+<tr class="even">
+<td>Levantamiento cinemático RTK</td>
+<td>Archivos exportados desde AllyPad</td>
+<td>Revisión o corrección de las coordenadas levantadas con el rover</td>
+</tr>
+</tbody>
+</table>
+<p>Durante el levantamiento estático, el equipo instalado sobre el punto geodésico registra internamente un archivo en formato <strong>TXT</strong>, el cual contiene las observaciones y datos de navegación capturados durante el tiempo de rastreo. Este archivo debe descargarse desde la memoria interna del receptor para su posterior conversión y procesamiento.</p>
+<p>En el levantamiento cinemático RTK, la información se almacena en el colector de datos mediante la aplicación <strong>AllyPad</strong>. Allí se guardan las coordenadas de los puntos levantados, la numeración o nombre del punto, la descripción, la altura, la precisión reportada, la fecha y hora de captura, así como la información de la base desde la cual se recibieron las correcciones.</p>
+</section>
+<section id="información-de-campo-requerida" class="level2" data-number="8.2">
+<h2 data-number="8.2" class="anchored" data-anchor-id="información-de-campo-requerida"><span class="header-section-number">8.2</span> Información de campo requerida</h2>
+<p>Antes de iniciar el postproceso, se debe verificar que la bitácora de campo contenga la información mínima necesaria para configurar correctamente el procesamiento.</p>
+<p>Durante la ocupación estática se debe haber registrado:</p>
+<table class="table">
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Información</th>
+<th>Descripción</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Nombre del punto</td>
+<td>Identificación del vértice observado</td>
+</tr>
+<tr class="even">
+<td>Hora de inicio</td>
+<td>Hora en la que comenzó el rastreo estático</td>
+</tr>
+<tr class="odd">
+<td>Hora de finalización</td>
+<td>Hora en la que terminó el rastreo</td>
+</tr>
+<tr class="even">
+<td>Altura de antena</td>
+<td>Distancia medida entre la marca de referencia de la antena y el punto físico ocupado</td>
+</tr>
+<tr class="odd">
+<td>Tipo de altura</td>
+<td>Indicar si la altura fue medida de forma vertical o inclinada</td>
+</tr>
+<tr class="even">
+<td>Localización del punto</td>
+<td>Descripción de la ubicación de la placa o vértice</td>
+</tr>
+<tr class="odd">
+<td>Condiciones del entorno</td>
+<td>Obstáculos, árboles, edificaciones u otros elementos que puedan afectar la señal</td>
+</tr>
+<tr class="even">
+<td>Condiciones atmosféricas</td>
+<td>Estado general del clima durante la observación</td>
+</tr>
+<tr class="odd">
+<td>Esquema de localización</td>
+<td>Croquis o descripción gráfica del punto observado</td>
+</tr>
+</tbody>
+</table>
+<p>La correcta medición de la altura de antena es fundamental, ya que un error en este dato se refleja directamente en la altura final obtenida durante el postproceso.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./53-practica_13_gnss_allynav_r26_files/img1.jpeg" class="img-fluid figure-img"></p>
+<figcaption>Placa del vértice geodésico utilizado para la ocupación estática</figcaption>
+</figure>
+</div>
+</section>
+<section id="conversión-del-archivo-txt-a-formato-rinex" class="level2" data-number="8.3">
+<h2 data-number="8.3" class="anchored" data-anchor-id="conversión-del-archivo-txt-a-formato-rinex"><span class="header-section-number">8.3</span> Conversión del archivo TXT a formato RINEX</h2>
+<p>Una vez descargado el archivo TXT generado por el receptor durante el rastreo estático, se debe convertir a un formato compatible con aplicaciones de postproceso GNSS. Para esta práctica se utiliza la aplicación <strong>NovAtel Convert</strong>, disponible en el siguiente enlace:</p>
+<p><a href="https://novatel.com/support/support-materials/software-downloads" class="uri">https://novatel.com/support/support-materials/software-downloads</a></p>
+<p>El procedimiento general consiste en abrir el archivo TXT desde la aplicación, seleccionar el formato de salida requerido y ejecutar la conversión mediante el botón <strong>Convert</strong>. El archivo puede exportarse, por ejemplo, en formato <strong>RINEX 2.11</strong> o <strong>RINEX 3.1</strong>, según los requerimientos del software de postproceso que se vaya a utilizar.</p>
+<p>Como resultado de la conversión se generan archivos RINEX asociados a las observaciones y a la navegación satelital. Estos archivos quedan almacenados normalmente en la misma carpeta donde se encuentra el archivo TXT original.</p>
+<table class="table">
+<thead>
+<tr class="header">
+<th>Extensión</th>
+<th>Contenido</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>.O</code></td>
+<td>Archivo de observaciones GNSS</td>
+</tr>
+<tr class="even">
+<td><code>.N</code> o <code>.D</code></td>
+<td>Archivo de navegación satelital</td>
+</tr>
+<tr class="odd">
+<td><code>.G</code></td>
+<td>Archivo de navegación GLONASS, cuando aplica</td>
+</tr>
+</tbody>
+</table>
+<p>Estos archivos constituyen la información básica del punto observado y serán utilizados posteriormente en el software de postproceso.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./53-practica_13_gnss_allynav_r26_files/convert_txt_rinex.png" class="img-fluid figure-img"></p>
+<figcaption>Conversión del archivo TXT del receptor a formato RINEX mediante NovAtel Convert</figcaption>
+</figure>
+</div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./53-practica_13_gnss_allynav_r26_files/formato_rinex.png" class="img-fluid figure-img"></p>
+<figcaption>Selección del formato de salida RINEX 2.11 o RINEX 3.1</figcaption>
+</figure>
+</div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./53-practica_13_gnss_allynav_r26_files/formato_rinexconv.png" class="img-fluid figure-img"></p>
+<figcaption>Conversión RINEX 2.11 o RINEX 3.1</figcaption>
+</figure>
+</div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./53-practica_13_gnss_allynav_r26_files/rinex_generados.png" class="img-fluid figure-img"></p>
+<figcaption>Archivos RINEX generados a partir del rastreo estático</figcaption>
+</figure>
+</div>
+</section>
+<section id="descarga-de-archivos-rinex-de-una-estación-permanente-del-igac" class="level2" data-number="8.4">
+<h2 data-number="8.4" class="anchored" data-anchor-id="descarga-de-archivos-rinex-de-una-estación-permanente-del-igac"><span class="header-section-number">8.4</span> Descarga de archivos RINEX de una estación permanente del IGAC</h2>
+<p>Una vez obtenidos los archivos RINEX del punto observado, se deben descargar los archivos RINEX de una estación permanente de referencia perteneciente a la Red Activa GNSS del IGAC.</p>
+<p>Para ello se ingresa al geoportal geodésico del IGAC:</p>
+<p><a href="https://redgeodesica.igac.gov.co/red_activa.html" class="uri">https://redgeodesica.igac.gov.co/red_activa.html</a></p>
+<p>Desde la Red Activa GNSS se identifica la estación permanente más cercana al punto observado. Para facilitar esta selección, puede emplearse el visor geográfico de la Red Geodésica Nacional, donde se visualizan las estaciones disponibles, su localización, nombre y estado de operación.</p>
+<p>Posteriormente, se busca la estación por nombre y se descargan los archivos RINEX correspondientes a la misma fecha del levantamiento. La búsqueda puede realizarse por nombre de estación, fecha calendario, semana GNSS o día del año.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./53-practica_13_gnss_allynav_r26_files/BOGA1.png" class="img-fluid figure-img"></p>
+<figcaption>Consulta de la Red Activa GNSS del IGAC</figcaption>
+</figure>
+</div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./53-practica_13_gnss_allynav_r26_files/BOGA2.png" class="img-fluid figure-img"></p>
+<figcaption>Selección y descarga de archivos RINEX de la estación BOGA</figcaption>
+</figure>
+</div>
+<p>Para esta práctica se emplea la estación <strong>BOGA</strong>, localizada dentro del campus de la Universidad Nacional de Colombia y disponible como estación activa. De esta estación se descargan los archivos RINEX correspondientes al día del levantamiento, en formato <strong>RINEX 2.11</strong>.</p>
+<p>Los archivos descargados de la estación permanente se utilizarán como referencia para procesar diferencialmente el punto observado durante la ocupación estática.</p>
+</section>
+<section id="descarga-de-efemérides-precisas" class="level2" data-number="8.5">
+<h2 data-number="8.5" class="anchored" data-anchor-id="descarga-de-efemérides-precisas"><span class="header-section-number">8.5</span> Descarga de efemérides precisas</h2>
+<p>Adicionalmente, se descargan las <strong>efemérides precisas</strong> correspondientes a la semana GNSS y al día específico del levantamiento. Estas efemérides permiten mejorar la calidad del procesamiento, al utilizar información orbital más precisa que la contenida en los archivos de navegación transmitidos por los satélites.</p>
+<p>En esta práctica, el levantamiento fue realizado en la <strong>semana GPS 2415</strong>, día <strong>110</strong>, por lo cual deben descargarse las efemérides precisas correspondientes a dicha semana y fecha.</p>
+<p>Por medio de la siguiente página podemos confirmar el numero de la semana GNSS y el dia Calendario que corresponde: https://gnsscalendar.com/</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./53-practica_13_gnss_allynav_r26_files/semana_gps.png" class="img-fluid figure-img"></p>
+<figcaption>Selección de semana GNSS y día correspondiente al levantamiento</figcaption>
+</figure>
+</div>
+<p>Estas efemérides serán utilizadas en el procesamiento cuando el software lo permita. En particular, se realizará una comparación entre el procesamiento efectuado con una aplicación de libre acceso que no permite incorporar efemérides precisas y el procesamiento realizado con <strong>RTKLIB</strong>, específicamente mediante el módulo <strong>RTKPOST</strong>, donde sí es posible cargarlas.</p>
+<p>Acceso a pagina de descarga de Efemérides: https://www.earthdata.nasa.gov/data/space-geodesy-techniques/gnss/precise-orbits-product</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./53-practica_13_gnss_allynav_r26_files/efemerides_precisas0.png" class="img-fluid figure-img"></p>
+<figcaption>Descarga de efemérides precisas Acceso a carpetas</figcaption>
+</figure>
+</div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./53-practica_13_gnss_allynav_r26_files/efemerides_precisas1.png" class="img-fluid figure-img"></p>
+<figcaption>Descarga de efemérides precisas Registro</figcaption>
+</figure>
+</div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./53-practica_13_gnss_allynav_r26_files/efemerides_precisas2.png" class="img-fluid figure-img"></p>
+<figcaption>Descarga de efemérides precisas busqueda semana GPS</figcaption>
+</figure>
+</div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./53-practica_13_gnss_allynav_r26_files/efemerides_precisas3.png" class="img-fluid figure-img"></p>
+<figcaption>Descarga de efemérides precisas a descargar</figcaption>
+</figure>
+</div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./53-practica_13_gnss_allynav_r26_files/efemerides_precisas4.png" class="img-fluid figure-img"></p>
+<figcaption>Descarga de efemérides precisas descargadas</figcaption>
+</figure>
+</div>
+</section>
+<section id="postproceso-del-levantamiento-estático" class="level2" data-number="8.6">
+<h2 data-number="8.6" class="anchored" data-anchor-id="postproceso-del-levantamiento-estático"><span class="header-section-number">8.6</span> Postproceso del levantamiento estático</h2>
+<p>Con los archivos del punto observado, los archivos RINEX de la estación permanente del IGAC, las efemérides precisas y la información de campo debidamente organizada, se procede a realizar el postproceso del levantamiento estático.</p>
+<p>El procesamiento puede realizarse mediante diferentes aplicaciones especializadas. En esta práctica se mostrará inicialmente el procedimiento en una aplicación de libre acceso denominada <strong>Emlid Studio</strong>, la cual permite realizar postproceso GNSS de manera sencilla. Sin embargo, debe tenerse en cuenta que esta aplicación no permite incorporar efemérides precisas dentro del procesamiento.</p>
+<p>Descarga Emlid Studio: https://emlid.com/es/emlid-studio/</p>
+<p>Posteriormente, se realizará el procesamiento en <strong>RTKLIB</strong>, mediante el módulo <strong>RTKPOST</strong>, el cual permite cargar archivos de observación, navegación y efemérides precisas. Esto permitirá comparar los resultados obtenidos con ambos procedimientos y analizar la influencia de los insumos utilizados en la coordenada final procesada.</p>
+<p>Descarga RTKLIB: https://github.com/tomojitakasu/RTKLIB_bin/tree/rtklib_2.4.3</p>
+<p>El objetivo de esta etapa es obtener una coordenada ajustada para la base observada durante la práctica. Esta coordenada servirá como referencia para revisar o corregir posteriormente las coordenadas del levantamiento cinemático RTK del borde de vía.</p>
+<section id="postproceso-del-levantamiento-estático-emlid-studio." class="level3" data-number="8.6.1">
+<h3 data-number="8.6.1" class="anchored" data-anchor-id="postproceso-del-levantamiento-estático-emlid-studio."><span class="header-section-number">8.6.1</span> Postproceso del levantamiento estático Emlid Studio.</h3>
+<p>Se debe seleccionar el tipo de postproceso a realizar en la aplicación: <img src="./53-practica_13_gnss_allynav_r26_files/Emlid1.png" class="img-fluid" alt="Seleccion de tipo de postproceso"></p>
+<p>Se importan o cargan los RINEX observados en nuestro levantamiento Estático.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./53-practica_13_gnss_allynav_r26_files/Emlid2.png" class="img-fluid figure-img"></p>
+<figcaption>Importación del archivo RINEX observados en vertive DOOF UNAL</figcaption>
+</figure>
+</div>
+<p>Debido a que durante la descarga de la los archivos RINEX de la base BOGA, se descargaron archivos D, N, G, siendo D, el archivo de observaciones O, la aplicación Emlid Studio no reconoce este archivo. Por tanto es necesario realizar la descarga de los archivos rinex 3.11 de la pagina del IGAC</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./53-practica_13_gnss_allynav_r26_files/Emlid3.png" class="img-fluid figure-img"></p>
+<figcaption>Cargue de archivos RINEX de Base - Fallida por archivo D</figcaption>
+</figure>
+</div>
+<p>Notese que ahora solo son dos archivos a descargar.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./53-practica_13_gnss_allynav_r26_files/Emlid4.png" class="img-fluid figure-img"></p>
+<figcaption>Descarga de RINEX estación BOGA Formato 3.11</figcaption>
+</figure>
+</div>
+<p>Adicionalmente se recomienda realizar la conversion del archivo crudo del levantamiento estático a RINEX 3.01</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./53-practica_13_gnss_allynav_r26_files/Emlid5.png" class="img-fluid figure-img"></p>
+<figcaption>Conversion de archivos brutos a RINEX 3.01</figcaption>
+</figure>
+</div>
+<p>Se puede observar en la siguiente imagen que los archivos RINEX observados en formato 3.11, la extensión del archivo es .rnx</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./53-practica_13_gnss_allynav_r26_files/Emlid6.png" class="img-fluid figure-img"></p>
+<figcaption>Cargue de Archivos RINEX 3.11 de estacion Base IGAC - BOGA</figcaption>
+</figure>
+</div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./53-practica_13_gnss_allynav_r26_files/Emlid7.png" class="img-fluid figure-img"></p>
+<figcaption>Definir coordenadas de la base permanente BOGA</figcaption>
+</figure>
+</div>
+<p>Estas coordenadas a ingresar de la base se localizan en la misma pagina de la red geodesica nacional - Red activa GNSS - Filtrando BOGA - Detalles. Estas se rellenan en los espacios de la aplicación, incluyendo la altura de la antena que tambien se reporta en la página.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./53-practica_13_gnss_allynav_r26_files/Emlid8.png" class="img-fluid figure-img"></p>
+<figcaption>Configuración de altura de antena y tipo de medición</figcaption>
+</figure>
+</div>
+<p>No olvidar tambien introducir la altura de la antena de nuestro equipo sobre vertice DOOf UNAL:</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./53-practica_13_gnss_allynav_r26_files/Emlid9.png" class="img-fluid figure-img"></p>
+<figcaption>Altura de la Antena en vertice DOOF UNAL - Observado</figcaption>
+</figure>
+</div>
+<p>Se cargan los archivos navegados de la estación Base BOGA:</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./53-practica_13_gnss_allynav_r26_files/Emlid10.png" class="img-fluid figure-img"></p>
+<figcaption>Cargue de archivos navegados N, G, de la estación Base PErmanente BOGA</figcaption>
+</figure>
+</div>
+<p>Se realizan configuraciones adicionales, como cambiar la ruta de guardado y nombre del archivo resultado del postproceso, el lapso de tiempo del levantamiento (para este dato se puede abrir los archivos de observacion y ver los tiempos), tambien se pueden modificar las constelaciones de satelites a procesar (GPS, GLONASS, GALILEO, BEIDOU, SBAS…etc) el formato de salida de coordenadas y tiempo.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./53-practica_13_gnss_allynav_r26_files/Emlid11.png" class="img-fluid figure-img"></p>
+<figcaption>Cargue de archivos navegados N, G, de la estación Base Permanente BOGA</figcaption>
+</figure>
+</div>
+</section>
+<section id="postproceso-del-levantamiento-estático-con-rtklib" class="level3" data-number="8.6.2">
+<h3 data-number="8.6.2" class="anchored" data-anchor-id="postproceso-del-levantamiento-estático-con-rtklib"><span class="header-section-number">8.6.2</span> Postproceso del levantamiento estático con RTKLIB</h3>
+<p>RTKLIB - Trae la aplicación de RTKPOST para realizar postproceso. RTKPOST permite procesar observaciones GNSS diferenciales a partir de un punto observado y una estación base de referencia. Para esta práctica, el punto observado corresponde al receptor instalado sobre el vértice geodésico de la Universidad Nacional, mientras que la estación base corresponde a la estación permanente <strong>BOGA</strong> del IGAC.</p>
+<p><strong>Configuración inicial de RTKPOST</strong>: Al abrir RTKPOST se despliega la ventana principal del aplicativo. En esta ventana se deben activar las casillas <strong>Time Start</strong> y <strong>Time End</strong>, correspondientes al tiempo de inicio y finalización del rastreo estático.</p>
+<p>Para esta práctica, el levantamiento fue realizado el día <strong>20 de abril de 2026</strong>. Al revisar los archivos de observación, se identifica que el rastreo inició a las <strong>14:02:16 GPST</strong> y finalizó a las <strong>14:20:07 GPST</strong>. Por tanto, estos son los valores que deben ingresarse en la ventana inicial de RTKPOST.</p>
+<p>El intervalo de procesamiento se configura en <strong>1 segundo</strong>, dado que el levantamiento estático fue realizado con una frecuencia de registro de <strong>1 Hz</strong>, equivalente a una observación por segundo.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./53-practica_13_gnss_allynav_r26_files/RTKLIB1.png" class="img-fluid figure-img"></p>
+<figcaption>Configuración de fecha, hora de inicio, hora final e intervalo de procesamiento en RTKPOST</figcaption>
+</figure>
+</div>
+<p>En la ventana principal también se deben cargar los archivos de entrada requeridos para el procesamiento:</p>
+<table class="table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Campo en RTKPOST</th>
+<th>Archivo a cargar</th>
+<th>Descripción</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>RINEX OBS: Rover</td>
+<td>Archivo de observación del punto levantado</td>
+<td>Corresponde al RINEX del receptor ubicado sobre el vértice observado</td>
+</tr>
+<tr class="even">
+<td>RINEX OBS: Base Station</td>
+<td>Archivo de observación de la estación BOGA</td>
+<td>Corresponde al RINEX de la estación permanente del IGAC</td>
+</tr>
+<tr class="odd">
+<td>RINEX NAV/CLK, SP3, etc.</td>
+<td>Archivo de navegación</td>
+<td>Se carga el archivo de navegación de la estación BOGA</td>
+</tr>
+<tr class="even">
+<td>RINEX NAV/CLK, SP3, etc.</td>
+<td>Efemérides precisas</td>
+<td>Se carga el archivo de efemérides precisas descargado para la semana GNSS y día correspondiente</td>
+</tr>
+</tbody>
+</table>
+<div id="fig-RTKLIB" class="quarto-layout-panel">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-RTKLIB-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell-subref quarto-layout-cell" data-ref-parent="fig-RTKLIB" style="flex-basis: 50.0%;justify-content: flex-start;">
+<div id="fig-Vertice" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-subfloat-fig figure">
+<div aria-describedby="fig-Vertice-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="53-practica_13_gnss_allynav_r26_files/RTKLIB2.png" class="img-fluid figure-img" data-ref-parent="fig-RTKLIB">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-subfloat-caption quarto-subfloat-fig" id="fig-Vertice-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+(a) RINEX observados sobre vertice DOOF UNAL
+</figcaption>
+</figure>
+</div>
+</div>
+<div class="quarto-layout-cell-subref quarto-layout-cell" data-ref-parent="fig-RTKLIB" style="flex-basis: 50.0%;justify-content: flex-start;">
+<div id="fig-rover_V" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-subfloat-fig figure">
+<div aria-describedby="fig-rover_V-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="53-practica_13_gnss_allynav_r26_files/RTKLIB3.png" class="img-fluid figure-img" data-ref-parent="fig-RTKLIB">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-subfloat-caption quarto-subfloat-fig" id="fig-rover_V-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+(b) RINEX de base permanente BOGA
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-RTKLIB-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;4: Fotos de app RTKPOST.
+</figcaption>
+</figure>
+</div>
+<div id="fig-RTKLIB2" class="quarto-layout-panel">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-RTKLIB2-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell-subref quarto-layout-cell" data-ref-parent="fig-RTKLIB2" style="flex-basis: 50.0%;justify-content: flex-start;">
+<div id="fig-Vertice" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-subfloat-fig figure">
+<div aria-describedby="fig-Vertice-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="53-practica_13_gnss_allynav_r26_files/RTKLIB4.png" class="img-fluid figure-img" data-ref-parent="fig-RTKLIB2">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-subfloat-caption quarto-subfloat-fig" id="fig-Vertice-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+(a) RINEX Navegados de Base permanente BOGA
+</figcaption>
+</figure>
+</div>
+</div>
+<div class="quarto-layout-cell-subref quarto-layout-cell" data-ref-parent="fig-RTKLIB2" style="flex-basis: 50.0%;justify-content: flex-start;">
+<div id="fig-rover_V" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-subfloat-fig figure">
+<div aria-describedby="fig-rover_V-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="53-practica_13_gnss_allynav_r26_files/RTKLIB5.png" class="img-fluid figure-img" data-ref-parent="fig-RTKLIB2">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-subfloat-caption quarto-subfloat-fig" id="fig-rover_V-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+(b) Archivo de Efemérides Precisas
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-RTKLIB2-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;5: Fotos de app RTKPOST.
+</figcaption>
+</figure>
+</div>
+<p>En la sección <strong>Solution</strong>, se selecciona la carpeta donde se guardarán los resultados del procesamiento. RTKPOST genera un archivo de salida con extensión <code>.pos</code>, en el cual se almacenan las coordenadas resultantes y la información de calidad de la solución.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./53-practica_13_gnss_allynav_r26_files/RTKLIB6.png" class="img-fluid figure-img"></p>
+<figcaption>Configuración de Ruta a guardar resultados</figcaption>
+</figure>
+</div>
+<p><strong>Configuración del modo de posicionamiento</strong> Luego de cargar los archivos de entrada, se ingresa al botón <strong>Options</strong>. En la pestaña <strong>Setting1</strong> se configura el modo general del procesamiento.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./53-practica_13_gnss_allynav_r26_files/RTKLIB7.png" class="img-fluid figure-img"></p>
+<figcaption>Configuración opciones Setting1</figcaption>
+</figure>
+</div>
+<p>Para esta práctica se selecciona el modo de posicionamiento <strong>Static</strong>, dado que se está procesando una ocupación estática sobre un punto fijo. En el campo <strong>Frequencies / Filter Type</strong> se seleccionan las frecuencias disponibles del receptor GNSS utilizadas durante el rastreo. En este caso se emplea la opción <strong>L1+2+3</strong>.</p>
+<p>La máscara de elevación se configura en <strong>10°</strong>, valor que debe coincidir con la máscara utilizada durante la medición en campo. En cuanto a las constelaciones, se seleccionan <strong>GPS</strong>, <strong>GLONASS</strong> y <strong>Galileo</strong>, correspondientes a las señales que se desean considerar en el procesamiento.</p>
+<p>En esta misma pestaña se mantienen las siguientes opciones generales:</p>
+<table class="table">
+<thead>
+<tr class="header">
+<th>Parámetro</th>
+<th>Configuración usada</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Positioning Mode</td>
+<td>Static</td>
+</tr>
+<tr class="even">
+<td>Frequencies / Filter Type</td>
+<td>L1+2+3</td>
+</tr>
+<tr class="odd">
+<td>Elevation Mask</td>
+<td>10°</td>
+</tr>
+<tr class="even">
+<td>Ionosphere Correction</td>
+<td>Broadcast</td>
+</tr>
+<tr class="odd">
+<td>Troposphere Correction</td>
+<td>Saastamoinen</td>
+</tr>
+<tr class="even">
+<td>Satellite Ephemeris/Clock</td>
+<td>Broadcast</td>
+</tr>
+<tr class="odd">
+<td>Constelaciones</td>
+<td>GPS, GLONASS y Galileo</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Configuración de ambigüedades</strong> En la pestaña <strong>Setting2</strong> se revisan los parámetros asociados a la resolución de ambigüedades. Para esta práctica no se realizaron modificaciones respecto a la configuración por defecto.</p>
+<p>Se mantiene la resolución de ambigüedades en modo continuo, con la opción correspondiente activada. Esta configuración permite que el programa gestione la resolución de ambigüedades durante el procesamiento de la línea base.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./53-practica_13_gnss_allynav_r26_files/RTKLIB8.png" class="img-fluid figure-img"></p>
+<figcaption>Configuración opciones Setting2</figcaption>
+</figure>
+</div>
+<p><strong>Configuración del formato de salida</strong> En la pestaña <strong>Output</strong> se define el formato de los resultados. Para esta práctica se selecciona como formato de solución <strong>Lat/Lon/Height</strong>, con el fin de obtener las coordenadas finales en latitud, longitud y altura.</p>
+<p>El formato de tiempo se deja en <strong>hh:mm:ss GPST</strong>, y el formato de latitud y longitud se define en <strong>grados decimales</strong>. El datum se configura como <strong>WGS84</strong> y la altura se mantiene como <strong>elipsoidal</strong>.</p>
+<p>Es importante cambiar la opción <strong>Solution for Static Mode</strong> a <strong>Single</strong>, de manera que el procesamiento entregue una única coordenada final para el punto observado.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./53-practica_13_gnss_allynav_r26_files/RTKLIB9.png" class="img-fluid figure-img"></p>
+<figcaption>Configuración del formato de salida, datum, altura elipsoidal y solución estática única</figcaption>
+</figure>
+</div>
+<p>La configuración usada en esta pestaña se resume así:</p>
+<table class="table">
+<thead>
+<tr class="header">
+<th>Parámetro</th>
+<th>Configuración usada</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Solution Format</td>
+<td>Lat/Lon/Height</td>
+</tr>
+<tr class="even">
+<td>Time Format</td>
+<td>hh:mm:ss GPST</td>
+</tr>
+<tr class="odd">
+<td>Latitude/Longitude Format</td>
+<td>Grados decimales</td>
+</tr>
+<tr class="even">
+<td>Datum</td>
+<td>WGS84</td>
+</tr>
+<tr class="odd">
+<td>Height</td>
+<td>Ellipsoidal</td>
+</tr>
+<tr class="even">
+<td>Solution for Static Mode</td>
+<td>Single</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Parámetros estadísticos</strong> En la pestaña <strong>Statistics</strong> se revisan los parámetros estadísticos asociados al procesamiento. Para esta práctica no se realizaron modificaciones en esta sección, conservando los valores definidos por defecto en RTKPOST.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./53-practica_13_gnss_allynav_r26_files/RTKLIB10.png" class="img-fluid figure-img"></p>
+<figcaption>Parámetros estadísticos conservados por defecto en RTKPOST</figcaption>
+</figure>
+</div>
+<p><strong>Configuración de posiciones y alturas de antena</strong> En la pestaña <strong>Positions</strong> se configuran las posiciones del rover y de la estación base. Para el caso de esta práctica, el <strong>rover</strong> corresponde al punto observado sobre el vértice geodésico, mientras que la <strong>Base Station</strong> corresponde a la estación permanente <strong>BOGA</strong> del IGAC.</p>
+<p>En el campo del rover se debe ingresar la altura de antena medida durante la práctica, correspondiente a la distancia entre el punto físico ocupado y la marca de referencia del receptor. Es fundamental verificar si la altura fue medida de forma vertical o inclinada, ya que este dato influye directamente en la altura final del punto procesado.</p>
+<p>En la sección <strong>Base Station</strong> se ingresan las coordenadas oficiales de la estación BOGA, descargadas desde la página de la Red Geodésica del IGAC. También se debe ingresar la altura de antena correspondiente a dicha estación, de acuerdo con la información disponible para la fecha del levantamiento.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./53-practica_13_gnss_allynav_r26_files/RTKLIB11.png" class="img-fluid figure-img"></p>
+<figcaption>Configuración de coordenadas de la estación BOGA y alturas de antena</figcaption>
+</figure>
+</div>
+<p>Para esta práctica se emplearon como referencia las coordenadas de la estación BOGA en latitud, longitud y altura elipsoidal. Una vez ingresada esta información, se selecciona la carpeta o archivo donde se almacenarán los resultados del procesamiento.</p>
+<p><strong>Ejecución del postproceso</strong> Después de configurar los archivos de entrada, el intervalo temporal, las opciones de procesamiento, el formato de salida y las posiciones de referencia, se regresa a la ventana principal de RTKPOST y se presiona el botón <strong>Execute</strong>.</p>
+<p>El programa ejecuta el procesamiento y, al finalizar, muestra la barra de progreso completa con el mensaje <strong>done</strong>. Esto indica que el archivo de resultados fue generado correctamente en la ruta definida.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./53-practica_13_gnss_allynav_r26_files/RTKLIB12.png" class="img-fluid figure-img"></p>
+<figcaption>Ejecución del postproceso en RTKPOST y generación del archivo POS</figcaption>
+</figure>
+</div>
+<p><strong>Revisión de resultados</strong> Finalizado el procesamiento, se abre el archivo <code>.pos</code> generado por RTKPOST. Este archivo contiene el resumen del procesamiento, los archivos utilizados, el intervalo de observación, el modo de posicionamiento, las constelaciones empleadas, las opciones de corrección y la coordenada resultante.</p>
+<p>En los resultados se debe revisar la coordenada final obtenida para el punto observado, así como los indicadores de calidad del procesamiento. Entre los parámetros más importantes se encuentran:</p>
+<table class="table">
+<thead>
+<tr class="header">
+<th>Parámetro</th>
+<th>Descripción</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Latitude</td>
+<td>Latitud final del punto observado</td>
+</tr>
+<tr class="even">
+<td>Longitude</td>
+<td>Longitud final del punto observado</td>
+</tr>
+<tr class="odd">
+<td>Height</td>
+<td>Altura elipsoidal final</td>
+</tr>
+<tr class="even">
+<td>Q</td>
+<td>Calidad de la solución</td>
+</tr>
+<tr class="odd">
+<td>ns</td>
+<td>Número de satélites utilizados</td>
+</tr>
+<tr class="even">
+<td>sdn, sde, sdu</td>
+<td>Desviaciones estándar en norte, este y altura</td>
+</tr>
+<tr class="odd">
+<td>ratio</td>
+<td>Indicador asociado a la solución de ambigüedades</td>
+</tr>
+</tbody>
+</table>
+<p>En RTKPOST, el campo <strong>Q</strong> permite identificar el tipo de solución obtenida. De acuerdo con la leyenda del archivo de resultados, los valores más comunes son:</p>
+<table class="table">
+<thead>
+<tr class="header">
+<th>Valor Q</th>
+<th>Tipo de solución</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1</td>
+<td>Fija</td>
+</tr>
+<tr class="even">
+<td>2</td>
+<td>Flotante</td>
+</tr>
+<tr class="odd">
+<td>5</td>
+<td>Simple</td>
+</tr>
+</tbody>
+</table>
+<p>Para esta práctica, el archivo de salida permite visualizar las coordenadas finales del punto observado y la calidad de la solución obtenida. Estos valores serán utilizados posteriormente para comparar la coordenada postprocesada de la base con la coordenada utilizada en campo durante el levantamiento RTK.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./53-practica_13_gnss_allynav_r26_files/RTKLIB0.png" class="img-fluid figure-img"></p>
+<figcaption>Visualización del archivo POS con coordenadas finales y calidad de la solución</figcaption>
+</figure>
+</div>
+<p>La coordenada obtenida mediante RTKPOST corresponde a la coordenada ajustada del punto observado durante el levantamiento estático. Esta coordenada debe compararse con la coordenada inicialmente utilizada para configurar la estación base durante el levantamiento RTK.</p>
+<p>Si existe una diferencia entre ambas coordenadas, se calcula el desplazamiento en Este, Norte y altura. Posteriormente, dicho desplazamiento puede aplicarse a los puntos levantados en modo cinemático RTK, con el fin de mejorar el amarre absoluto del levantamiento al sistema de referencia utilizado.</p>
+<p>En síntesis, el postproceso con RTKPOST permite:</p>
+<table class="table">
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Resultado</th>
+<th>Utilidad</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Obtener la coordenada final de la base</td>
+<td>Sirve como coordenada corregida del punto ocupado</td>
+</tr>
+<tr class="even">
+<td>Revisar la calidad de la solución</td>
+<td>Permite evaluar si el procesamiento fue fijo, flotante o simple</td>
+</tr>
+<tr class="odd">
+<td>Comparar contra la coordenada usada en campo</td>
+<td>Permite identificar desplazamientos</td>
+</tr>
+<tr class="even">
+<td>Corregir el levantamiento RTK</td>
+<td>Permite trasladar los puntos rover según el ajuste de la base</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="resultados-de-los-postprocesos-realizados-con-las-diferentes-aplicaciones" class="level3" data-number="8.6.3">
+<h3 data-number="8.6.3" class="anchored" data-anchor-id="resultados-de-los-postprocesos-realizados-con-las-diferentes-aplicaciones"><span class="header-section-number">8.6.3</span> Resultados de los postprocesos realizados con las diferentes aplicaciones</h3>
+<p>Como resultado del postproceso se obtiene una coordenada final para el punto observado durante el levantamiento estático. Esta coordenada debe revisarse junto con los indicadores de calidad reportados por el software, tales como precisión estimada, tipo de solución, residuos, número de satélites utilizados y consistencia general del procesamiento.</p>
+<p>La coordenada obtenida mediante postproceso debe compararse con la coordenada que fue utilizada inicialmente para configurar la estación base durante el levantamiento RTK. Esta comparación permite determinar si existe un desplazamiento en Este, Norte y altura.</p>
+</section>
+<section id="con-emlid-studio" class="level3" data-number="8.6.4">
+<h3 data-number="8.6.4" class="anchored" data-anchor-id="con-emlid-studio"><span class="header-section-number">8.6.4</span> Con Emlid Studio</h3>
+<p>La solución resultado de este postproceso fue single (5) significa que no fue precisa. “Revisar”</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./53-practica_13_gnss_allynav_r26_files/Emlid13.png" class="img-fluid figure-img"></p>
+<figcaption>Resultados del postproceso con EMLID STUDIO: coordenadas finales de la base</figcaption>
+</figure>
+</div>
+<p>A continuación se presentan las coordenadas obtenidas según el archivo de registro procesado con EMLID STUDIO:</p>
+<div id="tbl-gnss-results" class="quarto-float anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-gnss-results-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;5: Coordenadas extraídas del archivo 274605171607 (1).pos
+</figcaption>
+<div aria-describedby="tbl-gnss-results-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="table">
+<colgroup>
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: center;">Latitud (deg)</th>
+<th style="text-align: center;">Longitud (deg)</th>
+<th style="text-align: center;">Altura Elipsoidal (m)</th>
+<th style="text-align: center;">Calidad (Q)</th>
+<th style="text-align: center;">Satélites (ns)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">4.635628602</td>
+<td style="text-align: center;">-74.086317420</td>
+<td style="text-align: center;">2578.3972</td>
+<td style="text-align: center;">5 (Single)</td>
+<td style="text-align: center;">14</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<ul>
+<li>Precisiones Estimadas (Desviación Estándar)</li>
+</ul>
+<div id="tbl-precision" class="quarto-float anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-precision-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;6: Errores estándar del posicionamiento
+</figcaption>
+<div aria-describedby="tbl-precision-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="table">
+<thead>
+<tr class="header">
+<th style="text-align: left;">Componente</th>
+<th style="text-align: center;">Valor (m)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Norte (sdn)</td>
+<td style="text-align: center;">2.9095</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Este (sde)</td>
+<td style="text-align: center;">2.7358</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Vertical (sdu)</td>
+<td style="text-align: center;">8.7781</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+</section>
+<section id="con-rtklib" class="level3" data-number="8.6.5">
+<h3 data-number="8.6.5" class="anchored" data-anchor-id="con-rtklib"><span class="header-section-number">8.6.5</span> Con RTKLIB</h3>
+<p>Se obtuvo una solución <strong>estática fija (Fix)</strong> mediante RTKPOST, procesando el archivo de observación del punto levantado contra la estación permanente <strong>BOGA</strong> del IGAC. En el procesamiento se cargaron los archivos RINEX de observación, navegación y el archivo de efemérides precisas (<code>.sp3</code>). No obstante, en la configuración mostrada, RTKPOST reporta el uso de efemérides en modo <strong>Broadcast</strong>, por lo cual debe verificarse en las opciones del procesamiento que las efemérides precisas hayan sido efectivamente empleadas.</p>
+<p>Coordenadas geodésicas obtenidas en WGS84, con altura elipsoidal:</p>
+<div id="tbl-fix-results" class="quarto-float anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-fix-results-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;7: Coordenadas finales obtenidas mediante RTKPOST
+</figcaption>
+<div aria-describedby="tbl-fix-results-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="table">
+<thead>
+<tr class="header">
+<th style="text-align: left;">Parámetro</th>
+<th style="text-align: center;">Valor obtenido</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><strong>Latitud</strong></td>
+<td style="text-align: center;">4.635633809°</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>Longitud</strong></td>
+<td style="text-align: center;">-74.086329918°</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>Altura elipsoidal</strong></td>
+<td style="text-align: center;">2576.8939 m</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>Calidad (Q)</strong></td>
+<td style="text-align: center;">1 (Fix)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>Satélites (ns)</strong></td>
+<td style="text-align: center;">9</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p>Indicadores de calidad y precisión:</p>
+<p>La solución presenta una condición favorable de procesamiento, evidenciada por la obtención de solución fija, desviaciones estándar reducidas y un valor de <strong>Ratio</strong> superior al umbral mínimo configurado de 3.0.</p>
+<div id="tbl-rtklib-quality" class="quarto-float anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-rtklib-quality-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;8: Indicadores de calidad de la solución RTKPOST
+</figcaption>
+<div aria-describedby="tbl-rtklib-quality-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="table">
+<thead>
+<tr class="header">
+<th style="text-align: left;">Componente</th>
+<th style="text-align: center;">Desviación estándar (m)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><strong>Norte (sdn)</strong></td>
+<td style="text-align: center;">0.0003</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>Este (sde)</strong></td>
+<td style="text-align: center;">0.0003</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>Vertical (sdu)</strong></td>
+<td style="text-align: center;">0.0010</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>Este-Norte (sdne)</strong></td>
+<td style="text-align: center;">0.0001</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>Este-Vertical (sdeu)</strong></td>
+<td style="text-align: center;">0.0002</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>Vertical-Norte (sdun)</strong></td>
+<td style="text-align: center;">0.0005</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>Edad de corrección (age)</strong></td>
+<td style="text-align: center;">7.00 s</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>Ratio Test</strong></td>
+<td style="text-align: center;">11.6</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./53-practica_13_gnss_allynav_r26_files/RTKLIB0.png" class="img-fluid figure-img"></p>
+<figcaption>Resultados del postproceso con RTKLIB</figcaption>
+</figure>
+</div>
+</section>
+<section id="corrección-del-levantamiento-cinemático-rtk" class="level3" data-number="8.6.6">
+<h3 data-number="8.6.6" class="anchored" data-anchor-id="corrección-del-levantamiento-cinemático-rtk"><span class="header-section-number">8.6.6</span> Corrección del levantamiento cinemático RTK</h3>
+<p>Una vez obtenida la coordenada postprocesada de la base, se puede revisar el levantamiento cinemático RTK. Debido a que los puntos del borde de vía fueron levantados tomando como referencia la base instalada en campo, cualquier desplazamiento identificado en la coordenada de la base puede trasladarse a los puntos RTK.</p>
+<p>En términos generales, la corrección consiste en calcular la diferencia entre la coordenada inicial de la base y la coordenada postprocesada, y aplicar ese desplazamiento a las coordenadas de los puntos levantados con el rover.</p>
+</section>
+</section>
+<section id="síntesis-del-flujo-de-trabajo" class="level2" data-number="8.7">
+<h2 data-number="8.7" class="anchored" data-anchor-id="síntesis-del-flujo-de-trabajo"><span class="header-section-number">8.7</span> Síntesis del flujo de trabajo</h2>
+<p>El flujo general del postproceso desarrollado en la práctica se resume de la siguiente manera:</p>
+<table class="table">
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Etapa</th>
+<th>Descripción</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1. Organización de información</td>
+<td>Separar archivos del levantamiento estático, archivos RINEX, datos crudos, archivos de navegación, efemérides y archivos RTK exportados desde AllyPad</td>
+</tr>
+<tr class="even">
+<td>2. Conversión a RINEX</td>
+<td>Convertir el archivo TXT del receptor a formato RINEX mediante NovAtel Convert</td>
+</tr>
+<tr class="odd">
+<td>3. Descarga de estación permanente</td>
+<td>Descargar los archivos RINEX de la estación permanente BOGA del IGAC para la misma fecha del levantamiento</td>
+</tr>
+<tr class="even">
+<td>4. Descarga de efemérides</td>
+<td>Descargar efemérides precisas correspondientes a la semana GNSS y día del levantamiento</td>
+</tr>
+<tr class="odd">
+<td>5. Procesamiento estático</td>
+<td>Procesar la ocupación estática de la base en Emlid Studio y RTKPOST</td>
+</tr>
+<tr class="even">
+<td>6. Obtención de coordenada corregida</td>
+<td>Obtener la coordenada postprocesada de la base y revisar su precisión</td>
+</tr>
+<tr class="odd">
+<td>7. Comparación de base</td>
+<td>Comparar la coordenada usada en campo con la coordenada obtenida mediante postproceso</td>
+</tr>
+<tr class="even">
+<td>8. Corrección RTK</td>
+<td>Aplicar el desplazamiento de la base a los puntos levantados en modo cinemático</td>
+</tr>
+<tr class="odd">
+<td>9. Revisión final</td>
+<td>Verificar coordenadas, alturas, descripciones, precisión reportada y consistencia espacial de los puntos levantados</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="recomendacionesrecursos-adicionales-para-el-postproceso" class="level2" data-number="8.8">
+<h2 data-number="8.8" class="anchored" data-anchor-id="recomendacionesrecursos-adicionales-para-el-postproceso"><span class="header-section-number">8.8</span> Recomendaciones/recursos adicionales para el postproceso</h2>
+<ul>
+<li><p>Uso del software <a href="https://leica-geosystems.com/es-es/rugbycl/archive-data/software/leica-geo-office">Leica Geo Office</a> (licenciado)</p></li>
+<li><p><strong>RTKLIB</strong> es un paquete de software libre y de código abierto diseñado para el posicionamiento preciso mediante sistemas globales de navegación por satélite (GNSS), como GPS, GLONASS, Galileo, BeiDou y QZSS. Permite procesar datos en tiempo real (RTK) o postprocesamiento (PPK) para obtener precisiones centimétricas, siendo ampliamente utilizado en topografía, drones y agricultura de precisió</p></li>
+<li><p>Página para identificar la fecha GNSS del levantamiento: <a href="https://gnsscalendar.com/">https://gnsscalendar.com/</a></p></li>
+<li><p>https://redgeodesica.igac.gov.co/red_activa.html</p></li>
+</ul>
+</section>
+</section>
+<section id="actividad-final-comparación-de-resultados-y-corrección-del-levantamiento-rtk" class="level1" data-number="9">
+<h1 data-number="9"><span class="header-section-number">9</span> Actividad final: comparación de resultados y corrección del levantamiento RTK</h1>
+<p>Como actividad final de la práctica, el estudiante deberá comparar los resultados obtenidos mediante los diferentes procedimientos de postproceso y analizar su relación con las coordenadas oficiales del vértice geodésico observado. Adicionalmente, deberá corregir el levantamiento cinemático RTK del borde de vía con base en las coordenadas oficiales del vértice, representarlo sobre un mapa base y comentar la precisión del levantamiento.</p>
+<section id="objetivo-de-la-actividad" class="level2" data-number="9.1">
+<h2 data-number="9.1" class="anchored" data-anchor-id="objetivo-de-la-actividad"><span class="header-section-number">9.1</span> Objetivo de la actividad</h2>
+<p>Comparar las coordenadas proyectadas planas obtenidas mediante diferentes herramientas de postproceso GNSS, contrastarlas con las coordenadas oficiales del vértice observado y aplicar una corrección al levantamiento cinemático RTK a partir del desplazamiento identificado en la estación base.</p>
+</section>
+<section id="información-que-debe-utilizar-el-estudiante" class="level2" data-number="9.2">
+<h2 data-number="9.2" class="anchored" data-anchor-id="información-que-debe-utilizar-el-estudiante"><span class="header-section-number">9.2</span> Información que debe utilizar el estudiante</h2>
+<p>Para desarrollar la actividad, el estudiante deberá utilizar como mínimo la siguiente información:</p>
+<ul>
+<li>Coordenadas oficiales del vértice geodésico observado.</li>
+<li>Coordenadas obtenidas mediante postproceso en <strong>Emlid Studio</strong>.</li>
+<li>Coordenadas obtenidas mediante postproceso en <strong>RTKLIB / RTKPOST</strong>.</li>
+<li>Coordenadas obtenidas mediante el servicio canadiense <strong>CSRS-PPP</strong>.</li>
+<li>Coordenadas del levantamiento cinemático RTK exportadas desde el colector de datos.</li>
+<li>Coordenadas utilizadas en campo para configurar la estación base RTK.</li>
+</ul>
+<p>El servicio canadiense <strong>CSRS-PPP</strong> puede consultarse en el siguiente enlace:</p>
+<p><a href="https://webapp.csrs-scrs.nrcan-rncan.gc.ca/geod/account-compte/login.php" class="uri">https://webapp.csrs-scrs.nrcan-rncan.gc.ca/geod/account-compte/login.php</a></p>
+<p>Como soporte de la actividad, se deberá incluir una imagen o tabla con las coordenadas oficiales del vértice geodésico observado.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./53-practica_13_gnss_allynav_r26_files/coordenadas_oficiales_vertice.png" class="img-fluid figure-img"></p>
+<figcaption>Coordenadas oficiales del vértice geodésico observado</figcaption>
+</figure>
+</div>
+</section>
+<section id="parte-1.-comparación-de-coordenadas-proyectadas" class="level2" data-number="9.3">
+<h2 data-number="9.3" class="anchored" data-anchor-id="parte-1.-comparación-de-coordenadas-proyectadas"><span class="header-section-number">9.3</span> Parte 1. Comparación de coordenadas proyectadas</h2>
+<p>El estudiante deberá proyectar a coordenadas planas los resultados obtenidos en los diferentes postprocesos. Para esta práctica se recomienda trabajar en el sistema <strong>MAGNA-SIRGAS / Origen Nacional</strong>, salvo que el docente indique otro sistema de referencia.</p>
+<p>Una vez proyectadas las coordenadas, se deberá completar la siguiente tabla:</p>
+<div id="tbl-comparacion-postprocesos" class="quarto-float anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-comparacion-postprocesos-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;9: Tabla para comparación de coordenadas proyectadas del vértice observado
+</figcaption>
+<div aria-describedby="tbl-comparacion-postprocesos-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="table">
+<colgroup>
+<col style="width: 10%">
+<col style="width: 13%">
+<col style="width: 13%">
+<col style="width: 13%">
+<col style="width: 13%">
+<col style="width: 13%">
+<col style="width: 13%">
+<col style="width: 10%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Fuente del resultado</th>
+<th style="text-align: right;">Este (m)</th>
+<th style="text-align: right;">Norte (m)</th>
+<th style="text-align: right;">Altura (m)</th>
+<th style="text-align: right;">Δ Este (m)</th>
+<th style="text-align: right;">Δ Norte (m)</th>
+<th style="text-align: right;">Δ Altura (m)</th>
+<th>Observación</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Coordenada oficial del vértice</td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">0.000</td>
+<td>Coordenada de referencia</td>
+</tr>
+<tr class="even">
+<td>Emlid Studio</td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td>Indicar calidad de solución</td>
+</tr>
+<tr class="odd">
+<td>RTKLIB / RTKPOST</td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td>Indicar si fue Fix, Float o Single</td>
+</tr>
+<tr class="even">
+<td>CSRS-PPP Canadá</td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td>Resultado del servicio web</td>
+</tr>
+<tr class="odd">
+<td>Otro procesamiento</td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td>Opcional</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p>Las diferencias deberán calcularse respecto a la coordenada oficial del vértice:</p>
+<p><span class="math display">\[
+\Delta E = E_{postproceso} - E_{oficial}
+\]</span></p>
+<p><span class="math display">\[
+\Delta N = N_{postproceso} - N_{oficial}
+\]</span></p>
+<p><span class="math display">\[
+\Delta H = H_{postproceso} - H_{oficial}
+\]</span></p>
+<p>Donde:</p>
+<ul>
+<li><span class="math inline">\(\Delta E\)</span> corresponde a la diferencia en coordenada Este.</li>
+<li><span class="math inline">\(\Delta N\)</span> corresponde a la diferencia en coordenada Norte.</li>
+<li><span class="math inline">\(\Delta H\)</span> corresponde a la diferencia en altura.</li>
+<li><span class="math inline">\(E_{oficial}\)</span>, <span class="math inline">\(N_{oficial}\)</span> y <span class="math inline">\(H_{oficial}\)</span> corresponden a las coordenadas oficiales del vértice observado.</li>
+</ul>
+</section>
+<section id="parte-2.-cálculo-del-error-horizontal" class="level2" data-number="9.4">
+<h2 data-number="9.4" class="anchored" data-anchor-id="parte-2.-cálculo-del-error-horizontal"><span class="header-section-number">9.4</span> Parte 2. Cálculo del error horizontal</h2>
+<p>Con base en las diferencias calculadas, el estudiante deberá estimar el error horizontal de cada resultado de postproceso mediante la siguiente expresión:</p>
+<p><span class="math display">\[
+e_h = \sqrt{(\Delta E)^2 + (\Delta N)^2}
+\]</span></p>
+<p>Luego, deberá completar la siguiente tabla:</p>
+<div id="tbl-errores-postprocesos" class="quarto-float anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-errores-postprocesos-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;10: Tabla para resumen de errores respecto a la coordenada oficial
+</figcaption>
+<div aria-describedby="tbl-errores-postprocesos-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="table">
+<colgroup>
+<col style="width: 13%">
+<col style="width: 18%">
+<col style="width: 18%">
+<col style="width: 18%">
+<col style="width: 18%">
+<col style="width: 13%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Fuente del resultado</th>
+<th style="text-align: right;">Δ Este (m)</th>
+<th style="text-align: right;">Δ Norte (m)</th>
+<th style="text-align: right;">Error horizontal <span class="math inline">\(e_h\)</span> (m)</th>
+<th style="text-align: right;">Δ Altura (m)</th>
+<th>Comentario</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Emlid Studio</td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td></td>
+</tr>
+<tr class="even">
+<td>RTKLIB / RTKPOST</td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td></td>
+</tr>
+<tr class="odd">
+<td>CSRS-PPP Canadá</td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td></td>
+</tr>
+<tr class="even">
+<td>Otro procesamiento</td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p>El estudiante deberá comentar cuál de los métodos presentó menor diferencia respecto a la coordenada oficial y si los resultados son coherentes con la calidad de solución reportada por cada software.</p>
+</section>
+<section id="parte-3.-corrección-del-levantamiento-cinemático-rtk" class="level2" data-number="9.5">
+<h2 data-number="9.5" class="anchored" data-anchor-id="parte-3.-corrección-del-levantamiento-cinemático-rtk"><span class="header-section-number">9.5</span> Parte 3. Corrección del levantamiento cinemático RTK</h2>
+<p>Como punto adicional, el estudiante deberá corregir el levantamiento cinemático RTK del borde de vía tomando como referencia las coordenadas oficiales del vértice geodésico observado.</p>
+<p>Para ello, deberá comparar la coordenada utilizada en campo para configurar la estación base con la coordenada oficial del vértice. A partir de esa comparación se obtendrá el desplazamiento que deberá aplicarse a todos los puntos levantados con el rover.</p>
+<p>El desplazamiento de la base se calcula así:</p>
+<p><span class="math display">\[
+\Delta E_{base} = E_{oficial} - E_{base\_campo}
+\]</span></p>
+<p><span class="math display">\[
+\Delta N_{base} = N_{oficial} - N_{base\_campo}
+\]</span></p>
+<p><span class="math display">\[
+\Delta H_{base} = H_{oficial} - H_{base\_campo}
+\]</span></p>
+<p>Luego, para cada punto del levantamiento cinemático RTK, se deberán calcular las coordenadas corregidas:</p>
+<p><span class="math display">\[
+E_{corr} = E_{RTK} + \Delta E_{base}
+\]</span></p>
+<p><span class="math display">\[
+N_{corr} = N_{RTK} + \Delta N_{base}
+\]</span></p>
+<p><span class="math display">\[
+H_{corr} = H_{RTK} + \Delta H_{base}
+\]</span></p>
+<p>Donde:</p>
+<ul>
+<li><span class="math inline">\(E_{base\_campo}\)</span>, <span class="math inline">\(N_{base\_campo}\)</span> y <span class="math inline">\(H_{base\_campo}\)</span> corresponden a las coordenadas usadas en campo para configurar la base.</li>
+<li><span class="math inline">\(E_{oficial}\)</span>, <span class="math inline">\(N_{oficial}\)</span> y <span class="math inline">\(H_{oficial}\)</span> corresponden a las coordenadas oficiales del vértice.</li>
+<li><span class="math inline">\(E_{RTK}\)</span>, <span class="math inline">\(N_{RTK}\)</span> y <span class="math inline">\(H_{RTK}\)</span> corresponden a las coordenadas originales levantadas con el rover.</li>
+<li><span class="math inline">\(E_{corr}\)</span>, <span class="math inline">\(N_{corr}\)</span> y <span class="math inline">\(H_{corr}\)</span> corresponden a las coordenadas corregidas del levantamiento RTK.</li>
+</ul>
+<p>El estudiante deberá completar una tabla como la siguiente:</p>
+<div id="tbl-correccion-rtk" class="quarto-float anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-correccion-rtk-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;11: Tabla para corrección de puntos levantados mediante RTK
+</figcaption>
+<div aria-describedby="tbl-correccion-rtk-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="table">
+<colgroup>
+<col style="width: 10%">
+<col style="width: 13%">
+<col style="width: 13%">
+<col style="width: 13%">
+<col style="width: 13%">
+<col style="width: 13%">
+<col style="width: 13%">
+<col style="width: 10%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Punto</th>
+<th style="text-align: right;">Este RTK (m)</th>
+<th style="text-align: right;">Norte RTK (m)</th>
+<th style="text-align: right;">Altura RTK (m)</th>
+<th style="text-align: right;">Este corregido (m)</th>
+<th style="text-align: right;">Norte corregido (m)</th>
+<th style="text-align: right;">Altura corregida (m)</th>
+<th>Descripción</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>P1</td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td></td>
+</tr>
+<tr class="even">
+<td>P2</td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td></td>
+</tr>
+<tr class="odd">
+<td>P3</td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td></td>
+</tr>
+<tr class="even">
+<td>P4</td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+</section>
+<section id="parte-4.-representación-sobre-mapa-base" class="level2" data-number="9.6">
+<h2 data-number="9.6" class="anchored" data-anchor-id="parte-4.-representación-sobre-mapa-base"><span class="header-section-number">9.6</span> Parte 4. Representación sobre mapa base</h2>
+<p>Una vez corregidas las coordenadas del levantamiento cinemático RTK, el estudiante deberá representar el trazado del borde de vía sobre un mapa base.</p>
+<p>La representación podrá realizarse en un software SIG, como <strong>QGIS</strong> o <strong>ArcGIS</strong>, o mediante una herramienta compatible con archivos CSV, TXT, KML, GeoJSON o shapefile.</p>
+<p>El mapa deberá incluir como mínimo:</p>
+<ul>
+<li>Puntos RTK originales.</li>
+<li>Puntos RTK corregidos.</li>
+<li>Vértice geodésico utilizado como base.</li>
+<li>Mapa base de referencia.</li>
+<li>Sistema de coordenadas empleado.</li>
+<li>Leyenda.</li>
+<li>Escala gráfica.</li>
+<li>Norte.</li>
+<li>Comentario sobre la coherencia espacial del levantamiento.</li>
+</ul>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./53-practica_13_gnss_allynav_r26_files/mapa_base_rtk_corregido.png" class="img-fluid figure-img"></p>
+<figcaption>Espacio para mapa base con levantamiento RTK corregido</figcaption>
+</figure>
+</div>
+</section>
+<section id="parte-5.-comentario-técnico" class="level2" data-number="9.7">
+<h2 data-number="9.7" class="anchored" data-anchor-id="parte-5.-comentario-técnico"><span class="header-section-number">9.7</span> Parte 5. Comentario técnico</h2>
+<p>Finalmente, el estudiante deberá redactar un comentario técnico breve sobre la precisión y consistencia del levantamiento realizado.</p>
+<p>El comentario deberá responder, como mínimo, las siguientes preguntas:</p>
+<ul>
+<li>¿Cuál fue la diferencia entre las coordenadas oficiales y las coordenadas obtenidas por cada método de postproceso?</li>
+<li>¿Qué método presentó mejores resultados respecto a la coordenada oficial?</li>
+<li>¿La solución obtenida fue fija, flotante o simple?</li>
+<li>¿La precisión reportada por el software es coherente con las diferencias observadas?</li>
+<li>¿La corrección aplicada al levantamiento RTK mejoró el amarre absoluto de los puntos?</li>
+<li>¿El levantamiento RTK conserva coherencia geométrica sobre el mapa base?</li>
+<li>¿Qué factores pudieron afectar la precisión del levantamiento?</li>
+</ul>
+</section>
+<section id="entregables" class="level2" data-number="9.8">
+<h2 data-number="9.8" class="anchored" data-anchor-id="entregables"><span class="header-section-number">9.8</span> Entregables</h2>
+<p>El estudiante deberá entregar los siguientes productos:</p>
+<div id="tbl-entregables-tarea" class="quarto-float anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-entregables-tarea-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;12: Entregables de la actividad final
+</figcaption>
+<div aria-describedby="tbl-entregables-tarea-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="table">
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Entregable</th>
+<th>Descripción</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Tabla de comparación de coordenadas</td>
+<td>Comparación entre coordenadas oficiales, Emlid Studio, RTKLIB / RTKPOST, CSRS-PPP y otros resultados</td>
+</tr>
+<tr class="even">
+<td>Tabla de errores</td>
+<td>Diferencias en Este, Norte, altura y error horizontal</td>
+</tr>
+<tr class="odd">
+<td>Tabla de corrección RTK</td>
+<td>Coordenadas originales y corregidas del levantamiento cinemático</td>
+</tr>
+<tr class="even">
+<td>Mapa base</td>
+<td>Representación del levantamiento RTK original y corregido</td>
+</tr>
+<tr class="odd">
+<td>Comentario técnico</td>
+<td>Análisis de precisión, calidad de solución y coherencia espacial</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+</section>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
